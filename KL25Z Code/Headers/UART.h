@@ -2,7 +2,6 @@
 #define UART_HEADER
 
 #include "foundation.h"
-#include "constants.h"
 
 #define BAUD_RATE 9600
 #define UART_TX_PORTE 22

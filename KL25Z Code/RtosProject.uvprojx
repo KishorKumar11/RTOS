@@ -10,6 +10,7 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -337,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>.\Headers</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -386,45 +387,50 @@
               <FileType>1</FileType>
               <FilePath>.\Main.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Headers</GroupName>
+          <Files>
             <File>
-              <FileName>UART.h</FileName>
+              <FileName>constants.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\UART.h</FilePath>
+              <FilePath>.\Headers\constants.h</FilePath>
             </File>
             <File>
               <FileName>foundation.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\foundation.h</FilePath>
-            </File>
-            <File>
-              <FileName>UART.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\UART.c</FilePath>
-            </File>
-            <File>
-              <FileName>PWM.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\PWM.h</FilePath>
-            </File>
-            <File>
-              <FileName>PWM.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\PWM.c</FilePath>
-            </File>
-            <File>
-              <FileName>constants.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\constants.h</FilePath>
-            </File>
-            <File>
-              <FileName>motors.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\motors.h</FilePath>
+              <FilePath>.\Headers\foundation.h</FilePath>
             </File>
             <File>
               <FileName>motors.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\motors.c</FilePath>
+              <FilePath>.\Headers\motors.c</FilePath>
+            </File>
+            <File>
+              <FileName>motors.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\motors.h</FilePath>
+            </File>
+            <File>
+              <FileName>PWM.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Headers\PWM.c</FilePath>
+            </File>
+            <File>
+              <FileName>PWM.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\PWM.h</FilePath>
+            </File>
+            <File>
+              <FileName>UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Headers\UART.c</FilePath>
+            </File>
+            <File>
+              <FileName>UART.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\UART.h</FilePath>
             </File>
           </Files>
         </Group>

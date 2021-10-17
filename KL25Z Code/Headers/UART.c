@@ -34,6 +34,8 @@ void initUART2(uint32_t baud_rate) {
 void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	
+	osSemaphoreRelease(mainSem);
+	
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
 		if ((serialValue & 0b11101111) <= 9) {

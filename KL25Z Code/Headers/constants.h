@@ -7,6 +7,6 @@ typedef enum {
 	REVERSELEFT = 6,
 	REVERSERIGHT = 7,
 	SPINLEFT = 8,
-	SPINRIGHT = 9,
-	SENSOR = 20
+	SPINRIGHT = 9
+	//Add more tasks here i.e. play music, sensor etc
 } tasks;
