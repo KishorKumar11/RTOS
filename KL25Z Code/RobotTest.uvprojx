@@ -49,7 +49,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>RtosProject</OutputName>
+          <OutputName>RobotTest</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\Headers</IncludePath>
+              <IncludePath></IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -383,54 +383,14 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>Main.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Main.c</FilePath>
+              <FilePath>.\main.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Headers</GroupName>
-          <Files>
             <File>
               <FileName>constants.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\constants.h</FilePath>
-            </File>
-            <File>
-              <FileName>foundation.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\foundation.h</FilePath>
-            </File>
-            <File>
-              <FileName>motors.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Headers\motors.c</FilePath>
-            </File>
-            <File>
-              <FileName>motors.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\motors.h</FilePath>
-            </File>
-            <File>
-              <FileName>PWM.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Headers\PWM.c</FilePath>
-            </File>
-            <File>
-              <FileName>PWM.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\PWM.h</FilePath>
-            </File>
-            <File>
-              <FileName>UART.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Headers\UART.c</FilePath>
-            </File>
-            <File>
-              <FileName>UART.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\UART.h</FilePath>
+              <FilePath>.\constants.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -105,14 +105,12 @@ extern "C" {
 
 #include <stdint.h>
 
-#define CLOCK_SETUP 1
-
 
 #ifndef DISABLE_WDOG
   #define DISABLE_WDOG                 1
 #endif
 
-
+#define CLOCK_SETUP 1	
 
 
 /* MCG mode constants */

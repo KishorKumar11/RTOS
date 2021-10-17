@@ -1,6 +1,4 @@
-.\objects\main.o: Main.c
-.\objects\main.o: .\Headers\UART.h
-.\objects\main.o: .\Headers\foundation.h
+.\objects\main.o: main.c
 .\objects\main.o: C:\Users\Jonathan\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.0\Device\Include\MKL25Z4.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 .\objects\main.o: C:\Users\Jonathan\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\Core\Include\core_cm0plus.h
@@ -12,6 +10,4 @@
 .\objects\main.o: C:\Users\Jonathan\AppData\Local\Arm\Packs\Keil\Kinetis_KLxx_DFP\1.15.0\Device\Include\MKL25Z4.h
 .\objects\main.o: C:\Users\Jonathan\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\RTOS2\Include\cmsis_os2.h
 .\objects\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
-.\objects\main.o: .\Headers\constants.h
-.\objects\main.o: .\Headers\PWM.h
-.\objects\main.o: .\Headers\motors.h
+.\objects\main.o: constants.h

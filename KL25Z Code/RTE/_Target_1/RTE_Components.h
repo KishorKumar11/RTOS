@@ -3,7 +3,7 @@
  * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'RtosProject' 
+ * Project: 'RobotTest' 
  * Target:  'Target 1' 
  */
 
