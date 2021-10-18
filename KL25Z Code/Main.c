@@ -34,13 +34,25 @@ PORTA 1-2 == TPM2_CH 0-1 alt3
 #define PTD_PIN(x) x
 #define TOTAL_NO_PTD_PINS 6
 
+#define STOP 0
+#define FORWARDSTRAIGHT 1
+#define	FORWARDLEFT 2
+#define	FORWARDRIGHT 3
+#define	REVERSESTRAIGHT 5
+#define	REVERSELEFT 6
+#define	REVERSERIGHT 7
+#define	SPINLEFT 8
+#define	SPINRIGHT 9
+
 osSemaphoreId_t mainSem;
 osSemaphoreId_t moveSem;
 
-volatile tasks dir;
+volatile uint8_t dir = 0;
+volatile int intCount = 0;
+volatile int threadCount2 = 0;
 
-const osThreadAttr_t maxPriority = {
-		.priority = osPriorityRealtime
+const osThreadAttr_t abnormalPriority = {
+		.priority = osPriorityAboveNormal
 };
 
 static void delay(volatile uint32_t nof) {
@@ -70,8 +82,8 @@ void initUART2(uint32_t baud_rate) {
 	UART2->S2 = 0;
 	UART2->C3 = 0;
 	
-	UART2->C2 |= (UART_C2_RIE_MASK | UART_C2_TIE_MASK);
-	UART2->C2 |= (UART_C2_TE_MASK | UART_C2_RE_MASK);
+	UART2->C2 |= (UART_C2_RIE_MASK);
+	UART2->C2 |= (UART_C2_RE_MASK);
 	
 	NVIC_SetPriority(UART2_IRQn, 1);
 	NVIC_ClearPendingIRQ(UART2_IRQn);
@@ -80,15 +92,14 @@ void initUART2(uint32_t baud_rate) {
 
 void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
-	
+	intCount++;
+	osSemaphoreRelease(moveSem);
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
-		osSemaphoreRelease(mainSem);
-		delay(0x80000);
 		if ((serialValue & 0b11101111) <= 9) {
 			dir = (serialValue & 0b11101111);		
 		} else {
-			
+			dir = serialValue;
 		}
 	}
 	
@@ -196,36 +207,13 @@ void stop() {
 	TPM0_C4V = 0;
 	TPM0_C5V = 0;
 }
- 
-/*----------------------------------------------------------------------------
- * Application main thread
- *---------------------------------------------------------------------------*/
-void app_main (void *argument) {
-  for (;;) {
-		osSemaphoreAcquire(mainSem, osWaitForever);
-		switch(dir) {
-			case STOP:
-			case FORWARDSTRAIGHT:
-			case FORWARDLEFT:
-			case FORWARDRIGHT:
-			case REVERSESTRAIGHT:
-			case REVERSELEFT:
-			case REVERSERIGHT:
-			case SPINLEFT:
-			case SPINRIGHT:
-				osSemaphoreRelease(moveSem);
-				break;
-			default:
-				break;
-		}
-	}
-}
 
 void motor_thread (void *argument) {
 	
 	// ...
   for (;;) {
-		osSemaphoreAcquire(mainSem, osWaitForever); 
+		osSemaphoreAcquire(moveSem, osWaitForever); 
+		threadCount2++;
 		switch(dir) {
 			case STOP:
 				stop();
@@ -278,13 +266,9 @@ int main (void) {
  
   osKernelInitialize();                 // Initialize CMSIS-RTOS
 	
-	// mainSem only released by UART2_IRQ Receive Interrupt
-  // other Semaphores only released by brain_thread
-	osSemaphoreId_t mainSem = osSemaphoreNew(1, 0, NULL);
-	//osSemaphoreId_t moveSem = osSemaphoreNew(1, 0, NULL);
-	
-  //osThreadNew(app_main, NULL, &maxPriority);    // Create application main thread
-	osThreadNew(motor_thread, NULL, NULL);
+	osSemaphoreId_t moveSem = osSemaphoreNew(1, 0, NULL);
+
+	osThreadNew(motor_thread, NULL, &abnormalPriority);
 	
   osKernelStart();                      // Start thread execution
   for (;;) {}
