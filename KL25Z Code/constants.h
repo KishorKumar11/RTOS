@@ -9,4 +9,4 @@ typedef enum {
 	SPINLEFT = 8,
 	SPINRIGHT = 9
 	//Add more tasks here i.e. play music, sensor etc
-} tasks;
+} direction;

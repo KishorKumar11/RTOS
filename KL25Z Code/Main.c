@@ -34,22 +34,10 @@ PORTA 1-2 == TPM2_CH 0-1 alt3
 #define PTD_PIN(x) x
 #define TOTAL_NO_PTD_PINS 6
 
-#define STOP 0
-#define FORWARDSTRAIGHT 1
-#define	FORWARDLEFT 2
-#define	FORWARDRIGHT 3
-#define	REVERSESTRAIGHT 5
-#define	REVERSELEFT 6
-#define	REVERSERIGHT 7
-#define	SPINLEFT 8
-#define	SPINRIGHT 9
-
 osSemaphoreId_t mainSem;
 osSemaphoreId_t moveSem;
 
-volatile uint8_t dir = 0;
-volatile int intCount = 0;
-volatile int threadCount2 = 0;
+volatile direction dir = 0;
 
 const osThreadAttr_t abnormalPriority = {
 		.priority = osPriorityAboveNormal
@@ -92,7 +80,6 @@ void initUART2(uint32_t baud_rate) {
 
 void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
-	intCount++;
 	osSemaphoreRelease(moveSem);
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
@@ -213,7 +200,6 @@ void motor_thread (void *argument) {
 	// ...
   for (;;) {
 		osSemaphoreAcquire(moveSem, osWaitForever); 
-		threadCount2++;
 		switch(dir) {
 			case STOP:
 				stop();
