@@ -5,8 +5,8 @@
 #define TXD2 17
 
 // Replace with your network credentials
-const char* ssid = "Justin";
-const char* password = "aloysius";
+const char* ssid = "Jonathan's Phone";
+const char* password = "jeremiah29:11";
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -37,7 +37,7 @@ void setup() {
   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
 
   //Configure Static IP
-  if (true) {
+  if (false) {
     if(!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS))
     {
       Serial.println("Static IP failed to configure");
