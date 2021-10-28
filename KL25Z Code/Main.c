@@ -23,32 +23,49 @@
 #define UART_TX_PORTE 22
 #define UART_RX_PORTE 23
 
-/*For PWM*/
+/*For Motor*/
+#define LF_Pin TPM0_C2V
+#define LR_Pin TPM0_C0V
+#define RF_Pin TPM0_C3V
+#define RR_Pin TPM0_C1V
 
-/**
-PORTD 0-5 == TPM0_CH 0-5 alt4
-PORTA 1-2 == TPM2_CH 0-1 alt3 
-*/
-#define PTA_PIN(x) x
-#define TOTAL_NO_PTA_PINS 2
-#define PTD_PIN(x) x
-#define TOTAL_NO_PTD_PINS 6
+volatile direction dir = 0;
+volatile int speed = 7000;
+
+#define QUEUE_SIZE 3
 
 osSemaphoreId_t mainSem;
 osSemaphoreId_t moveSem;
 
-volatile direction dir = 0;
 
-const osThreadAttr_t abnormalPriority = {
+
+const osThreadAttr_t veryHighPriority = {
+		.priority = osPriorityHigh4
+};
+
+const osThreadAttr_t highPriority = {
 		.priority = osPriorityAboveNormal
 };
 
+const osThreadAttr_t aboveNormalPriority = {
+		.priority = osPriorityAboveNormal
+};
+
+const osThreadAttr_t normalPriority = {
+		.priority = osPriorityAboveNormal
+};
+
+typedef struct {
+	uint8_t message;
+} Message_Object;
+
+/*
 static void delay(volatile uint32_t nof) {
   while(nof!=0) {
     __asm("NOP");
     nof--;
   }
-}
+}*/
 
 void initUART2(uint32_t baud_rate) {
 	SIM->SCGC4 |= SIM_SCGC4_UART2_MASK;
@@ -80,35 +97,23 @@ void initUART2(uint32_t baud_rate) {
 
 void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
-	osSemaphoreRelease(moveSem);
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
+		
 		if ((serialValue & 0b11101111) <= 9) {
 			dir = (serialValue & 0b11101111);		
 		} else {
 			dir = serialValue;
 		}
 	}
-	
-	
+	osSemaphoreRelease(moveSem);
 }
 
-void initPortD() {
-	// 1. Set Pins PORT D, enable clk gating
-	
-	//Enable clk gating for PORT D
-	SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-	
-	//Set MUX for PORT D
-	for (int i = 0; i < TOTAL_NO_PTD_PINS; i++) {
-		PORTD->PCR[PTD_PIN(i)] &= ~(PORT_PCR_MUX_MASK);
-		PORTD->PCR[PTD_PIN(i)] |= PORT_PCR_MUX(4);
-	}
-	
-	// 2. Enable CLock Gating for Timer 0 and Timer 2
+void initPWM0() {
+	// Enable CLock Gating for Timer 0
 	SIM_SCGC6 |= SIM_SCGC6_TPM0_MASK;
 	
-	// 3. Select Clock for TPM module
+	// Select Clock for TPM module
 	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK;
 	SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1); //MCGFLLCLK clock or MCGPLLCLK/2
 	
@@ -134,70 +139,52 @@ void initPortD() {
 	//Enable PWM on TPM2 Channel 3 -> PTD3
 	TPM0_C3SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
 	TPM0_C3SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 4 -> PTD4
-	TPM0_C4SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C4SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 5 -> PTD5
-	TPM0_C5SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C5SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
 }
 
-void initPortA(){
-	// 1. Set Pins PORT A, enable clk gating
+void initPortD() {
+	// 1. Set Pins PORT D, enable clk gating
 	
-	//Enable clk gating for PORT A
-	SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
+	//Enable clk gating for PORT D
+	SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
 	
-	//Set MUX for PORT A and PORT D
-	for (int i = 1; i <= TOTAL_NO_PTA_PINS; i++) {
-		PORTA->PCR[PTA_PIN(i)] &= ~(PORT_PCR_MUX_MASK);
-		PORTA->PCR[PTA_PIN(i)] |= PORT_PCR_MUX(3); 
-	}
-	
-	// 2. Enable CLock Gating for Timer 2
-	SIM_SCGC6 |= SIM_SCGC6_TPM2_MASK;
-	
-	// 3. Select Clock for TPM module
-	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK;
-	SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1); //MCGFLLCLK clock or MCGPLLCLK/2
-	
-	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
-	TPM2->MOD = 7500;
-	
-	/*Edge-Aligned PWM*/
-	
-	//Update Status&Control Registers and set bits to CMOD:01, PS:111 (prescalar 128)
-	TPM2->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK));
-	TPM2->SC |= (TPM_SC_CMOD(1) | TPM_SC_PS(1));
-	TPM2->SC &= ~(TPM_SC_CPWMS_MASK); //Set to upcount PWM
-	
-	//Enable PWM on TPM2 Channel 0 -> PTA1
-	TPM2_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM2_C0SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 1 -> PTA2
-	TPM2_C1SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM2_C1SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
+	//Set MUX for PORT D
+	PORTD->PCR[0] &= ~(PORT_PCR_MUX_MASK);
+	PORTD->PCR[0] |= PORT_PCR_MUX(4);
+	PORTD->PCR[1] &= ~(PORT_PCR_MUX_MASK);
+	PORTD->PCR[1] |= PORT_PCR_MUX(4);
+	PORTD->PCR[2] &= ~(PORT_PCR_MUX_MASK);
+	PORTD->PCR[2] |= PORT_PCR_MUX(4);
+	PORTD->PCR[3] &= ~(PORT_PCR_MUX_MASK);
+	PORTD->PCR[3] |= PORT_PCR_MUX(4);
 }
+
+
 
 void initPWMMotors() {
-	initPortA();
+	initPWM0();
 	initPortD();
 }
 
-void stop() {
-	TPM2_C0V = 0;
-	TPM2_C1V = 0;
-	TPM0_C0V = 0;
-	TPM0_C1V = 0; 
-	TPM0_C2V = 0;
-	TPM0_C3V = 0;
-	TPM0_C4V = 0;
-	TPM0_C5V = 0;
+
+void tBrain (void* argument) {
+	for(;;) {
+		
+		
+	}
 }
 
-void motor_thread (void *argument) {
-	
-	// ...
+void stop() {
+	LF_Pin = 0;
+	RF_Pin = 0; 
+	LR_Pin = 0;
+	RR_Pin = 0;
+}
+
+void tMotorControl (void *argument) {
+	//LF: PTD2 C2V
+	//LR: PTD0 C0V
+	//RF: PTD3 C3V
+	//RR: PTD1 C1V
   for (;;) {
 		osSemaphoreAcquire(moveSem, osWaitForever); 
 		switch(dir) {
@@ -205,36 +192,36 @@ void motor_thread (void *argument) {
 				stop();
 				break;
 			case FORWARDSTRAIGHT:
-				TPM0_C0V = 0x0EA6; // 0xEA6 = 3750, basically half of 7500 for 50% duty cycle
-				osDelay(100);
+				LF_Pin = speed; // 0xEA6 = 3750, basically half of 7500 for 50% duty cycle
+				RF_Pin = speed;
 				break;
 			case FORWARDLEFT:
-				TPM0_C1V = 0x0EA6;
-				osDelay(100);
+				LF_Pin = speed * 0.8;
+				RF_Pin = speed;
 				break;
 			case FORWARDRIGHT:
-				TPM0_C2V = 0x0EA6;
-				osDelay(100);
+				LF_Pin = speed;
+				RF_Pin = speed * 0.8;
 				break;
 			case REVERSESTRAIGHT:
-				TPM0_C3V = 0x0EA6;
-				osDelay(100);
+				LR_Pin = speed;
+				RR_Pin = speed;
 				break;
 			case REVERSELEFT:
-				TPM0_C4V = 0x0EA6;
-				osDelay(100);
+				LR_Pin = speed * 0.8;
+				RR_Pin = speed;
 				break;
 			case REVERSERIGHT:
-				TPM0_C5V = 0x0EA6;
-				osDelay(100);
+				LR_Pin = speed;
+				RR_Pin = speed * 0.8;
 				break;
 			case SPINLEFT:
-				TPM2_C0V = 0x0EA6;
-				osDelay(100);
+				LR_Pin = speed;
+				RF_Pin = speed;
 				break;
 			case SPINRIGHT:
-				TPM2_C1V = 0x0EA6;
-				osDelay(100);
+				LF_Pin = speed;
+				RR_Pin = speed;
 				break;
 			default:
 				stop();
@@ -242,7 +229,20 @@ void motor_thread (void *argument) {
 		}
 	}
 }
- 
+
+void tLED (void* Argument) {
+	
+	
+}
+
+void tAudio (void* Argument) {
+	
+	
+}
+
+
+
+
 int main (void) {
  
   // System Initialization
@@ -253,8 +253,17 @@ int main (void) {
   osKernelInitialize();                 // Initialize CMSIS-RTOS
 	
 	osSemaphoreId_t moveSem = osSemaphoreNew(1, 0, NULL);
+	
+	osMessageQueueId_t brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
+	osMessageQueueId_t motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
+	osMessageQueueId_t redLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
+	osMessageQueueId_t greenLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
+	osMessageQueueId_t audioMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
 
-	osThreadNew(motor_thread, NULL, &abnormalPriority);
+	osThreadNew(tBrain, NULL, &veryHighPriority);
+	osThreadNew(tMotorControl, NULL, &highPriority);
+	osThreadNew(tAudio, NULL, &aboveNormalPriority);
+	osThreadNew(tLED, NULL, &normalPriority);
 	
   osKernelStart();                      // Start thread execution
   for (;;) {}
