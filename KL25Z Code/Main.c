@@ -37,7 +37,11 @@ volatile int speed = 7000;
 osSemaphoreId_t mainSem;
 osSemaphoreId_t moveSem;
 
-
+osMessageQueueId_t brainMessageQueue;
+osMessageQueueId_t motorMessageQueue;
+osMessageQueueId_t redLedMessageQueue;
+osMessageQueueId_t greenLedMessageQueue;
+osMessageQueueId_t audioMessageQueue;
 
 const osThreadAttr_t veryHighPriority = {
 		.priority = osPriorityHigh4
@@ -57,7 +61,7 @@ const osThreadAttr_t normalPriority = {
 
 typedef struct {
 	uint8_t message;
-} Message_Object;
+} MessageObjectType;
 
 /*
 static void delay(volatile uint32_t nof) {
@@ -99,12 +103,9 @@ void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
-		
-		if ((serialValue & 0b11101111) <= 9) {
-			dir = (serialValue & 0b11101111);		
-		} else {
-			dir = serialValue;
-		}
+		MessageObjectType messageObject;
+		messageObject.message = serialValue;
+		osMessageQueuePut(brainMessageQueue, &messageObject, 0, 0);
 	}
 	osSemaphoreRelease(moveSem);
 }
@@ -168,7 +169,14 @@ void initPWMMotors() {
 
 void tBrain (void* argument) {
 	for(;;) {
-		
+		MessageObjectType messageObject;
+		osMessageQueueGet(brainMessageQueue, &messageObject, NULL, osWaitForever);
+		uint8_t message = messageObject.message;
+		if ((message >> 4) == 0x1) { //motor control instructions
+			MessageObjectType motorMessage;
+			motorMessage.message = (message & 0x0F); //only the 4 LSB
+			osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		}
 		
 	}
 }
@@ -186,40 +194,41 @@ void tMotorControl (void *argument) {
 	//RF: PTD3 C3V
 	//RR: PTD1 C1V
   for (;;) {
-		osSemaphoreAcquire(moveSem, osWaitForever); 
-		switch(dir) {
-			case STOP:
+		MessageObjectType messageObject;
+		osMessageQueueGet(motorMessageQueue, &messageObject, NULL, osWaitForever); 
+		switch(messageObject.message) {
+			case 0x0: //STOP
 				stop();
 				break;
-			case FORWARDSTRAIGHT:
+			case 0x1: //FORWARDSTRAIGHT
 				LF_Pin = speed; // 0xEA6 = 3750, basically half of 7500 for 50% duty cycle
 				RF_Pin = speed;
 				break;
-			case FORWARDLEFT:
+			case 0x2: //FORWARDLEFT
 				LF_Pin = speed * 0.8;
 				RF_Pin = speed;
 				break;
-			case FORWARDRIGHT:
+			case 0x3: //FORWARDRIGHT
 				LF_Pin = speed;
 				RF_Pin = speed * 0.8;
 				break;
-			case REVERSESTRAIGHT:
+			case 0x5: //REVERSESTRAIGHT
 				LR_Pin = speed;
 				RR_Pin = speed;
 				break;
-			case REVERSELEFT:
+			case 0x6: //REVERSELEFT
 				LR_Pin = speed * 0.8;
 				RR_Pin = speed;
 				break;
-			case REVERSERIGHT:
+			case 0x7: //REVERSERIGHT
 				LR_Pin = speed;
 				RR_Pin = speed * 0.8;
 				break;
-			case SPINLEFT:
+			case 0x8: //SPINLEFT
 				LR_Pin = speed;
 				RF_Pin = speed;
 				break;
-			case SPINRIGHT:
+			case 0x9: //SPINRIGHT
 				LF_Pin = speed;
 				RR_Pin = speed;
 				break;
@@ -254,11 +263,11 @@ int main (void) {
 	
 	osSemaphoreId_t moveSem = osSemaphoreNew(1, 0, NULL);
 	
-	osMessageQueueId_t brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
-	osMessageQueueId_t motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
-	osMessageQueueId_t redLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
-	osMessageQueueId_t greenLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
-	osMessageQueueId_t audioMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(Message_Object), NULL);
+	brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
+	motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
+	redLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
+	greenLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
+	audioMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
 
 	osThreadNew(tBrain, NULL, &veryHighPriority);
 	osThreadNew(tMotorControl, NULL, &highPriority);

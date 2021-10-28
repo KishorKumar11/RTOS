@@ -30,18 +30,12 @@ Build target 'Target 1'
 compiling main.c...
 constants.h(12): warning:  #1-D: last line of file ends without a newline
   } direction;
-main.c(34): warning:  #188-D: enumerated type mixed with another type
+main.c(32): warning:  #188-D: enumerated type mixed with another type
   volatile direction dir = 0;
-main.c(82): warning:  #188-D: enumerated type mixed with another type
-  			dir = (serialValue & 0b11101111);		
-main.c(84): warning:  #188-D: enumerated type mixed with another type
-  			dir = serialValue;
-main.c(41): warning:  #177-D: function "delay"  was declared but never referenced
-  static void delay(volatile uint32_t nof) {
-main.c: 5 warnings, 0 errors
+main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=10296 RO-data=536 RW-data=5136 ZI-data=360  
-".\Objects\RobotTest.axf" - 0 Error(s), 5 Warning(s).
+Program Size: Code=10364 RO-data=644 RW-data=5156 ZI-data=356  
+".\Objects\RobotTest.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
