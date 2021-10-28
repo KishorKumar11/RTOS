@@ -167,6 +167,30 @@ void initPWMMotors() {
 }
 
 
+void initLED() {
+	SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
+	
+  PORTB->PCR[0] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[0] |= PORT_PCR_MUX(1);
+	PORTB->PCR[1] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[1] |= PORT_PCR_MUX(1);
+	PORTB->PCR[2] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[2] |= PORT_PCR_MUX(1);
+	PORTB->PCR[3] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[3] |= PORT_PCR_MUX(1);
+	PORTB->PCR[8] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[8] |= PORT_PCR_MUX(1);
+	PORTB->PCR[9] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[9] |= PORT_PCR_MUX(1);
+	PORTB->PCR[10] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[10] |= PORT_PCR_MUX(1);
+	PORTB->PCR[11] &= ~PORT_PCR_MUX_MASK;
+	PORTB->PCR[11] |= PORT_PCR_MUX(1);
+	
+	PTB->PDDR |= (0b1111 << 8) | 0b1111;
+	PTB->PCOR |= (0b1111 << 8) | 0b1111;
+}
+
 void tBrain (void* argument) {
 	for(;;) {
 		MessageObjectType messageObject;
@@ -176,8 +200,21 @@ void tBrain (void* argument) {
 			MessageObjectType motorMessage;
 			motorMessage.message = (message & 0x0F); //only the 4 LSB
 			osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+			if (motorMessage.message) { //if its moving, todo add case for incresae/decrease speed
+				MessageObjectType greenLedMessage;
+				greenLedMessage.message = 0x2;
+				osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+			} else {
+				MessageObjectType greenLedMessage;
+				greenLedMessage.message = 0x0;
+				osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+			}
 		}
-		
+		if ((message >> 4) == 0x2) { //internet connection message
+			MessageObjectType greenLedMessage;
+			greenLedMessage.message = 0x1;
+			osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+		}
 	}
 }
 
@@ -239,7 +276,66 @@ void tMotorControl (void *argument) {
 	}
 }
 
-void tLED (void* Argument) {
+void tGreenLED (void* Argument) {
+	int state = 0;
+	int led = 0;
+	for(;;) {
+		MessageObjectType messageObject;
+		osStatus_t messageStatus = osMessageQueueGet(greenLedMessageQueue, &messageObject, 0, 0);
+		if (messageStatus == osOK) {
+			state = messageObject.message;
+		}
+		switch(state) {
+			case 0: //stationary
+				PTB->PSOR |= (0b1111 << 8) | 0b1111;
+			break;
+			case 1: //wifi connected
+				PTB->PCOR |= (0b1111 << 8) | 0b1111;
+				osDelay(250);
+				PTB->PSOR |= (0b1111 << 8) | 0b1111;
+				osDelay(250);
+				PTB->PCOR |= (0b1111 << 8) | 0b1111;
+				state = 0;
+			break;
+			case 2: //moving (Order is 3,2,1,0,11,10,9,8)
+				PTB->PCOR |= (0b1111 << 8) | 0b1111;
+				switch(led) {
+					case 0: 
+						PTB->PSOR |= (1 << 3);
+						break;
+					case 1: 
+						PTB->PSOR |= (1 << 2);
+						break;
+					case 2: 
+						PTB->PSOR |= (1 << 1);
+						break;
+					case 3: 
+						PTB->PSOR |= (1 << 0);
+						break;
+					case 4: 
+						PTB->PSOR |= (1 << 11);
+						break;
+					case 5: 
+						PTB->PSOR |= (1 << 10);
+						break;
+					case 6: 
+						PTB->PSOR |= (1 << 9);
+						break;
+					case 7: 
+						PTB->PSOR |= (1 << 8);
+						break;
+					default: led = 0;
+				}
+				led = (led + 1) % 8;
+			break;
+			default: 
+				state = 0;
+		}
+		osDelay(250);
+	}
+}
+
+void tRedLED (void* Argument) {
 	
 	
 }
@@ -250,14 +346,13 @@ void tAudio (void* Argument) {
 }
 
 
-
-
 int main (void) {
  
   // System Initialization
   SystemCoreClockUpdate();
 	initUART2(BAUD_RATE);
 	initPWMMotors();
+	initLED();
  
   osKernelInitialize();                 // Initialize CMSIS-RTOS
 	
@@ -272,7 +367,8 @@ int main (void) {
 	osThreadNew(tBrain, NULL, &veryHighPriority);
 	osThreadNew(tMotorControl, NULL, &highPriority);
 	osThreadNew(tAudio, NULL, &aboveNormalPriority);
-	osThreadNew(tLED, NULL, &normalPriority);
+	osThreadNew(tGreenLED, NULL, &normalPriority);
+	osThreadNew(tRedLED, NULL, &normalPriority);
 	
   osKernelStart();                      // Start thread execution
   for (;;) {}
