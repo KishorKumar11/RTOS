@@ -27,19 +27,19 @@ Project File Date:  10/29/2021
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Rebuild target 'Target 1'
-compiling Ultrasonic.c...
 assembling startup_MKL25Z4.s...
+compiling Ultrasonic.c...
 compiling RTX_Config.c...
 compiling rtx_lib.c...
 compiling system_MKL25Z4.c...
 compiling sound.c...
-sound.c(94): warning:  #177-D: variable "notes"  was declared but never referenced
+sound.c(96): warning:  #177-D: variable "notes"  was declared but never referenced
     int notes = sizeof(connectionMelody) / sizeof(connectionMelody[0]);
-sound.c(95): warning:  #177-D: variable "wholenote"  was declared but never referenced
+sound.c(97): warning:  #177-D: variable "wholenote"  was declared but never referenced
     int wholenote = (60000 * 4) / tempo;
-sound.c(96): warning:  #177-D: variable "divider"  was declared but never referenced
+sound.c(98): warning:  #177-D: variable "divider"  was declared but never referenced
     int divider = 0, noteDuration = 0; 
-sound.c(96): warning:  #177-D: variable "noteDuration"  was declared but never referenced
+sound.c(98): warning:  #177-D: variable "noteDuration"  was declared but never referenced
     int divider = 0, noteDuration = 0; 
 sound.c: 4 warnings, 0 errors
 compiling main.c...
@@ -49,7 +49,7 @@ main.c(22): warning:  #188-D: enumerated type mixed with another type
   volatile direction dir = 0;
 main.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=11460 RO-data=644 RW-data=6496 ZI-data=360  
+Program Size: Code=11396 RO-data=644 RW-data=6524 ZI-data=356  
 ".\Objects\RobotTest.axf" - 0 Error(s), 6 Warning(s).
 
 <h2>Software Packages used:</h2>

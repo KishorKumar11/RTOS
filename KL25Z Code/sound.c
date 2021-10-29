@@ -3,6 +3,8 @@
 // Adjust pace of the song here
 int tempo = 144;
 
+int dumbNotes[] = {262, 294, 330, 349, 392, 440, 494};
+
 // Unique one played for connection established
 int connectionMelody[] = { NOTEDOA, 4, NOTE, 2, NOTERA, 4, NOTE, 2, NOTERA, 4, NOTE, 2, NOTEDOA, 4, NOTE, 2,};
 
@@ -147,4 +149,28 @@ void playPinkPantherMelody() {
       TPM1_C0V = 0;
       osDelay(100*2*10*noteDuration);
     }
+}
+
+void setFreq(int freq)
+{
+	TPM1->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK)); //Clearing bits for Cmod and ps 
+	TPM1->SC |= (TPM_SC_CMOD(1) | TPM_SC_PS(7)); //Set bits for CMOD and PS to above
+	
+	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
+	TPM1->MOD = 375000 / freq;
+	TPM1_C0V = TPM1->MOD / 2;
+}
+
+void playDumbNotes()
+{
+	TPM1_C0V = 0x0EA6; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
+	for (int i = 0; i < 6; i++) {
+		setFreq(dumbNotes[i]);
+		osDelay(2000);
+	}
+}
+
+void offSound()
+{
+	TPM1_C0V = 0x0;
 }

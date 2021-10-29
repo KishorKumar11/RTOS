@@ -126,5 +126,11 @@ void playNarutoThemeMelody(void);
 
 void playPinkPantherMelody(void);
 
+void setFreq(int freq);
+
+void playDumbNotes(void);
+
+void offSound(void);
+
 #endif
 

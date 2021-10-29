@@ -340,11 +340,12 @@ void tAudio (void* Argument) {
 		
 		switch (song) {
 			case 1: 
-				playPinkPantherMelody();
-				//song = 2;
+				playDumbNotes();
+				offSound();
+				song = 2;
 				break;
 			case 2:
-				playNarutoThemeMelody();
+				//playNarutoThemeMelody();
 				break;
 			case 3:
 				playPinkPantherMelody();
