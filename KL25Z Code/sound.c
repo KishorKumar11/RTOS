@@ -46,7 +46,7 @@ int pinkPantherMelody[] = {
   NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, NOTE_E4,16, NOTE_E4,16, NOTE_E4,2,
 };
 
-static void delay(volatile uint32_t nof) {
+/*static void delay(volatile uint32_t nof) {
   while(nof!=0) {
     __asm("NOP");
     nof--;
@@ -57,13 +57,37 @@ static void delay100x(volatile uint32_t nof) {
   for(int i =0;i<100;i++) {
     delay(nof);
   }
-}
+}*/
 
 void initSound() {
     SIM->SCGC5 |= (SIM_SCGC5_PORTE_MASK);
   
     PORTE->PCR[PTE20_Pin] &= ~PORT_PCR_MUX_MASK;
-    PORTE->PCR[PTE20_Pin] |= PORT_PCR_MUX(1);
+    PORTE->PCR[PTE20_Pin] |= PORT_PCR_MUX(3);
+}
+
+void initAudioPWM()
+{	
+	//Enable Clock Gating for Timer 1 TPM1
+	SIM->SCGC6 |= SIM_SCGC6_TPM1_MASK;
+	
+	//Select Clock for TPM module
+	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK;
+	SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1); //MCGFLLCLK clock or MCGPLLCLK/2
+	
+	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
+	TPM1->MOD = 7500;
+	
+	/*Edge-Aligned PWM*/
+	
+	//Update Status&Control Registers and set bits to CMOD:01, PS:111 (prescalar 128)
+	TPM1->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK)); //Clearing bits for Cmod and ps 
+	TPM1->SC |= (TPM_SC_CMOD(1) | TPM_SC_PS(7)); //Set bits for CMOD and PS to above
+	TPM1->SC &= ~(TPM_SC_CPWMS_MASK); //Set to upcount PWM
+	
+	//Enable PWM on TPM1 Channel 0 -> PTB0
+	TPM1_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
+	TPM1_C0SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
 }
 
 void playConnectionMelody() {
@@ -91,10 +115,10 @@ void playNarutoThemeMelody() {
       period = TO_MOD(narutoThemeMelody[i]);
       TPM1->MOD = period;
       TPM1_C0V = period / 8; 
-      delay100x(2*9*noteDuration);
+      osDelay(100*2*9*noteDuration);
       TPM1->MOD = 0;
       TPM1_C0V = 0;
-      delay100x(2*10*noteDuration);
+      osDelay(100*2*10*noteDuration);
 
     }
   }
@@ -106,7 +130,6 @@ void playPinkPantherMelody() {
   int divider = 0, noteDuration = 0;
   uint32_t period;
   
-    while(1) {
     for(int i = 0; i < notes; i += 2) {
       divider = pinkPantherMelody[i + 1];
       if (divider > 0) {
@@ -119,10 +142,9 @@ void playPinkPantherMelody() {
       period = TO_MOD(pinkPantherMelody[i]);
       TPM1->MOD = period;
       TPM1_C0V = period / 8; 
-      delay100x(2*9*noteDuration);
+      osDelay(100*2*9*noteDuration);
       TPM1->MOD = 0;
       TPM1_C0V = 0;
-      delay100x(2*10*noteDuration);
-    }
+      osDelay(100*2*10*noteDuration);
     }
 }

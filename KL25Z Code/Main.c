@@ -1,14 +1,3 @@
-/**
-* TPM2_CH0 -> Rear-Left forward
-* TPM2_CH1 -> Rear-Left reverse
-* TPM0_CH4 -> Front-Left forward
-* TPM0_CH5 -> Front-Left reverse
-* TPM0_CH0 -> Rear-Right forward
-* TPM0_CH2 -> Rear-Right reverse
-* TPM0_CH3 -> Front-Right forward
-* TPM0_CH1 -> Front-Right reverse
-*/
- 
 #include "MKL25Z4.h"
 /* Default Core Clk Freq is 20.97152MHz */
 // Current code will run at 48 MHz core clk freq
@@ -34,9 +23,6 @@ volatile direction dir = 0;
 volatile int speed = 7000;
 
 #define QUEUE_SIZE 3
-
-osSemaphoreId_t mainSem;
-osSemaphoreId_t moveSem;
 
 osMessageQueueId_t brainMessageQueue;
 osMessageQueueId_t motorMessageQueue;
@@ -108,7 +94,6 @@ void UART2_IRQHandler() {
 		messageObject.message = serialValue;
 		osMessageQueuePut(brainMessageQueue, &messageObject, 0, 0);
 	}
-	osSemaphoreRelease(moveSem);
 }
 
 void initPWM0() {
@@ -215,6 +200,9 @@ void tBrain (void* argument) {
 			MessageObjectType greenLedMessage;
 			greenLedMessage.message = 0x1;
 			osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+			MessageObjectType audioMessage;
+			audioMessage.message = 0x1;
+			osMessageQueuePut(audioMessageQueue, &audioMessage, 0, 0);
 		}
 	}
 }
@@ -342,8 +330,30 @@ void tRedLED (void* Argument) {
 }
 
 void tAudio (void* Argument) {
-	
-	
+	int song = 0;
+	for (;;) {
+		MessageObjectType messageObject;
+		osStatus_t messageStatus = osMessageQueueGet(audioMessageQueue, &messageObject, 0, 0);
+		if (messageStatus == osOK) {
+			song = messageObject.message;
+		}
+		
+		switch (song) {
+			case 1: 
+				playPinkPantherMelody();
+				//song = 2;
+				break;
+			case 2:
+				playNarutoThemeMelody();
+				break;
+			case 3:
+				playPinkPantherMelody();
+				song = 0;
+				break;
+			default:
+				osDelay(250);
+		}
+	}	
 }
 
 
@@ -354,10 +364,10 @@ int main (void) {
 	initUART2(BAUD_RATE);
 	initPWMMotors();
 	initLED();
+	initSound();
+	initAudioPWM();
  
   osKernelInitialize();                 // Initialize CMSIS-RTOS
-	
-	osSemaphoreId_t moveSem = osSemaphoreNew(1, 0, NULL);
 	
 	brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
 	motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);

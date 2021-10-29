@@ -1,10 +1,11 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include "MKL25Z4.h"                    
+#include "MKL25Z4.h" 
+#include "cmsis_os2.h"
 #include <math.h>
 
-#define PTE20_Pin 0
+#define PTE20_Pin 20
 #define NOTE_CNT 25
 #define TO_MOD(x) 375000/(x)
 
@@ -111,11 +112,13 @@
 #define REST      0
 
 /* Delay Function */
-static void delay(volatile uint32_t nof);
+//static void delay(volatile uint32_t nof);
 
-static void delay100x(volatile uint32_t nof);
+//static void delay100x(volatile uint32_t nof);
 
 void initSound(void);
+
+void initAudioPWM(void);
 
 void playConnectionMelody(void);
 

@@ -93,6 +93,7 @@ void loop() {
   if(req.indexOf("status") != -1)
   {
     response = "WiFi Connected: " + ip_address;
+    Serial2.write(0x20);
   }
   if(req.indexOf("forwardStraight") != -1)
   {
