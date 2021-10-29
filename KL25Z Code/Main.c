@@ -17,11 +17,12 @@
 #include  CMSIS_device_header
 #include "cmsis_os2.h"
 #include "constants.h"
+#include "sound.h"
 
 /*For UART*/
 #define BAUD_RATE 9600
 #define UART_TX_PORTE 22
-#define UART_RX_PORTE 23
+#define UART_RX_PORTE 23 
 
 /*For Motor*/
 #define LF_Pin TPM0_C2V
