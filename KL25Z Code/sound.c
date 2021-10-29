@@ -6,60 +6,82 @@ int tempo = 144;
 int dumbNotes[] = {262, 294, 330, 349, 392, 440, 494};
 
 // Unique one played for connection established
-int connectionMelody[] = { NOTEDOA, 4, NOTE, 2, NOTERA, 4, NOTE, 2, NOTERA, 4, NOTE, 2, NOTEDOA, 4, NOTE, 2,};
+int connectionMelody[] = {NOTEDOA, NOTE, NOTERA, NOTE, NOTERA, NOTE, NOTEDOA, NOTE};
+int connectionBeat[] = {4, 2, 4, 2, 4, 2, 4, 2};
 
 // Song played during challenge
 int narutoThemeMelody[] = {
-  NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2,
-  NOTEFAS, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2,
-  NOTESI, 4, NOTE, 2, NOTELA, 4, NOTE, 2, NOTESOL, 4, NOTE, 2,
-  NOTELA, 4, NOTE, 2, NOTESOL, 4, NOTE, 2, NOTEFAS, 4, NOTE, 2,
+  NOTEMI, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
+  NOTEFAS, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
+  NOTESI, NOTE, NOTELA, NOTE, NOTESOL, NOTE,
+  NOTELA, NOTE, NOTESOL, NOTE, NOTEFAS, NOTE,
     
-  NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2,
-  NOTEFAS, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2,
-  NOTEREA, 4, NOTE, 2, NOTELA, 4, NOTE, 2, NOTEMI, 4, NOTE, 2,
-  NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTEFAS, 4, NOTE, 2,
+  NOTEMI, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
+  NOTEFAS, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
+  NOTEREA, NOTE, NOTELA, NOTE, NOTEMI, NOTE,
+  NOTEMI, NOTE, NOTEMI, NOTE, NOTEFAS, NOTE,
     
-  NOTEMI, 4, NOTE, 2, NOTEMI, 4, NOTE, 2, NOTESI, 4, NOTE, 2,
-  NOTELA, 4, NOTE, 2, NOTESOL, 4, NOTE, 2, NOTELA, 4, NOTE, 2,
-  NOTESOL, 4, NOTE, 2, NOTEFAS, 4, NOTE, 2, NOTEDOA, 4, NOTE, 2,
-  NOTEDOA, 4, NOTE, 2, NOTESI, 4, NOTE, 2, NOTESI, 4, NOTE, 2,
+  NOTEMI, NOTE, NOTEMI, NOTE, NOTESI, NOTE,
+  NOTELA, NOTE,  NOTESOL, NOTE, NOTELA, NOTE,
+  NOTESOL, NOTE, NOTEFAS, NOTE, NOTEDOA, NOTE,
+  NOTEDOA, NOTE, NOTESI, NOTE, NOTESI, NOTE
+};
+int narutoThemeBeat[] = {
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2,
+	4, 2, 4, 2, 4, 2
 };
 
 // Song played for end of challenge
 int pinkPantherMelody[] = {
-  REST,2, REST,4, REST,8, NOTE_DS4,8, 
-  NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
-  NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
-  NOTE_E4,2, REST,4, REST,8, NOTE_DS4,4,
+  REST, REST, REST, NOTE_DS4, 
+  NOTE_E4, REST, NOTE_FS4, NOTE_G4, REST, NOTE_DS4,
+  NOTE_E4, NOTE_FS4,  NOTE_G4, NOTE_C5, NOTE_B4, NOTE_E4, NOTE_G4, NOTE_B4,   
+  NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_E4, NOTE_D4,
+  NOTE_E4, REST, REST, NOTE_DS4,
 
-	NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,8, NOTE_B4,-8, NOTE_E5,8,
-  NOTE_DS5,1,   
-  NOTE_D5,2, REST,4, REST,8, NOTE_DS4,8, 
-  NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
+	NOTE_E4, REST, NOTE_FS4, NOTE_G4, REST, NOTE_DS4,
+  NOTE_E4, NOTE_FS4,  NOTE_G4, NOTE_C5, NOTE_B4, NOTE_G4, NOTE_B4, NOTE_E5,
+  NOTE_DS5,   
+  NOTE_D5, REST, REST, NOTE_DS4, 
+  NOTE_E4, REST, NOTE_FS4, NOTE_G4, REST, NOTE_DS4,
+  NOTE_E4, NOTE_FS4,  NOTE_G4, NOTE_C5, NOTE_B4, NOTE_E4, NOTE_G4, NOTE_B4,   
   
-  NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
-  NOTE_E4,-4, REST,4,
-  REST,4, NOTE_E5,-8, NOTE_D5,8, NOTE_B4,-8, NOTE_A4,8, NOTE_G4,-8, NOTE_E4,-8,
-  NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8,   
-  NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, NOTE_E4,16, NOTE_E4,16, NOTE_E4,2,
+  NOTE_AS4, NOTE_A4, NOTE_G4, NOTE_E4, NOTE_D4, 
+  NOTE_E4, REST,
+  REST, NOTE_E5, NOTE_D5, NOTE_B4, NOTE_A4, NOTE_G4, NOTE_E4,
+  NOTE_AS4, NOTE_A4, NOTE_AS4, NOTE_A4, NOTE_AS4, NOTE_A4, NOTE_AS4, NOTE_A4,  
+  NOTE_G4, NOTE_E4, NOTE_D4, NOTE_E4, NOTE_E4, NOTE_E4,
 };
-
-/*static void delay(volatile uint32_t nof) {
-  while(nof!=0) {
-    __asm("NOP");
-    nof--;
-  }
-}
-
-static void delay100x(volatile uint32_t nof) {
-  for(int i =0;i<100;i++) {
-    delay(nof);
-  }
-}*/
+int pinkPantherBeat[] = {
+	2, 4, 8, 8,
+	-4, 8, 8, -4, 8, 8,
+	-8, 8, -8, 8, -8, 8, -8, 8,
+	2, -16, -16, -16, -16,
+	2, 4, 8, 4,
+	
+	-4, 8, 8, -4, 8, 8,
+	-8, 8, -8, 8, -8, 8, -8, 8,
+	1,
+	2, 4, 8, 8,
+	-4, 8, 8, -4, 8, 8,
+	-8, 8, -8, 8, -8, 8, -8, 8,
+	
+	2, -16, -16, -16, -16,
+	-4, 4,
+	4, -8, 8, -8, 8, -8, -8,
+	16, -8, 16, -8, 16, -8, 16, -8,
+	-16, -16, -16, 16, 16, 2
+};
 
 void initSound() {
     SIM->SCGC5 |= (SIM_SCGC5_PORTE_MASK);
@@ -92,64 +114,6 @@ void initAudioPWM()
 	TPM1_C0SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
 }
 
-void playConnectionMelody() {
-  int notes = sizeof(connectionMelody) / sizeof(connectionMelody[0]);
-  int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0; 
-}
-
-void playNarutoThemeMelody() {
-  int notes = sizeof(narutoThemeMelody) / sizeof(narutoThemeMelody[0]);
-  int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0;
-  uint32_t period;
-  
-    while(1) {
-    for(int i = 0; i < notes; i += 2) {
-      divider = narutoThemeMelody[i + 1];
-      if (divider > 0) {
-        noteDuration = (wholenote) / divider;
-      } else if (divider < 0) {
-        noteDuration = (wholenote) / (divider);
-        noteDuration *= 1.5; 
-      }
-
-      period = TO_MOD(narutoThemeMelody[i]);
-      TPM1->MOD = period;
-      TPM1_C0V = period / 8; 
-      osDelay(100*2*9*noteDuration);
-      TPM1->MOD = 0;
-      TPM1_C0V = 0;
-      osDelay(100*2*10*noteDuration);
-
-    }
-  }
-}
-
-void playPinkPantherMelody() {
-  int notes = sizeof(pinkPantherMelody) / sizeof(pinkPantherMelody[0]);
-  int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0;
-  uint32_t period;
-  
-    for(int i = 0; i < notes; i += 2) {
-      divider = pinkPantherMelody[i + 1];
-      if (divider > 0) {
-        noteDuration = (wholenote) / divider;
-      } else if (divider < 0) {
-        noteDuration = (wholenote) / (divider);
-        noteDuration *= 1.5; 
-      }
-
-      period = TO_MOD(pinkPantherMelody[i]);
-      TPM1->MOD = period;
-      TPM1_C0V = period / 8; 
-      osDelay(100*2*9*noteDuration);
-      TPM1->MOD = 0;
-      TPM1_C0V = 0;
-      osDelay(100*2*10*noteDuration);
-    }
-}
 
 void setFreq(int freq)
 {
@@ -159,6 +123,76 @@ void setFreq(int freq)
 	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
 	TPM1->MOD = 375000 / freq;
 	TPM1_C0V = TPM1->MOD / 2;
+}
+
+void playConnectionMelody() {
+	//Duty cycle sets the volume
+	TPM1_C0V = VOLUME; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
+	
+	int wholenote = (60000 * 4) / tempo;
+  int divider = 0, noteDuration = 0;
+	
+	for (int i = 0; i < TOTAL_CONNECTION_NOTES; i++) {
+		setFreq(connectionMelody[i]);
+		divider = connectionBeat[i];
+		noteDuration = wholenote / divider;
+		/* Tweak timing between notes here using numbers in connectionBeat */
+		osDelay(1000); 
+	}
+}
+
+void playNarutoThemeMelody() {
+	//Duty cycle sets the volume
+	TPM1_C0V = VOLUME; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
+	
+  int wholenote = (60000 * 4) / tempo;
+  int divider = 0, noteDuration = 0;
+  uint32_t period;
+  
+    for(int i = 0; i < TOTAL_NARUTO_NOTES; i++) {
+      divider = narutoThemeBeat[i];
+      if (divider > 0) {
+        noteDuration = (wholenote) / divider;
+      } else if (divider < 0) {
+        noteDuration = (wholenote) / (divider);
+        noteDuration *= 1.5; 
+      }
+
+      setFreq(narutoThemeMelody[i]);
+			
+			/* Tweak timing between notes here using numbers in narutoThemeBeat */
+			/*Timing needs to change, playing each note for way too long*/
+      osDelay(100*2*9*noteDuration);
+      TPM1->MOD = 0;
+      TPM1_C0V = 0;
+      osDelay(100*2*10*noteDuration);
+
+    }
+}
+
+void playPinkPantherMelody() {
+  int notes = sizeof(pinkPantherMelody) / sizeof(pinkPantherMelody[0]);
+  int wholenote = (60000 * 4) / tempo;
+  int divider = 0, noteDuration = 0;
+  
+    for(int i = 0; i < TOTAL_PINKPANTHER_NOTES; i++) {
+      divider = pinkPantherBeat[i];
+      if (divider > 0) {
+        noteDuration = (wholenote) / divider;
+      } else if (divider < 0) {
+        noteDuration = (wholenote) / (divider);
+        noteDuration *= 1.5; 
+      }
+
+      setFreq(pinkPantherMelody[i]);
+			
+			/* Tweak timing between notes here using numbers in pinkPantherBeat */
+			/*Timing needs to change, playing each note for way too long*/
+      osDelay(100*2*9*noteDuration);
+      TPM1->MOD = 0;
+      TPM1_C0V = 0;
+      osDelay(100*2*10*noteDuration);
+    }
 }
 
 void playDumbNotes()

@@ -111,6 +111,12 @@
 #define NOTE_DS8 4978
 #define REST      0
 
+#define VOLUME 0x15F9
+
+#define TOTAL_CONNECTION_NOTES 8
+#define TOTAL_NARUTO_NOTES 72
+#define TOTAL_PINKPANTHER_NOTES 88
+
 /* Delay Function */
 //static void delay(volatile uint32_t nof);
 
