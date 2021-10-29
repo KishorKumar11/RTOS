@@ -122,76 +122,89 @@ void setFreq(int freq)
 	
 	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
 	TPM1->MOD = 375000 / freq;
-	TPM1_C0V = TPM1->MOD / 2;
+	// Divide by octate
+	TPM1_C0V = TPM1->MOD / 8;
 }
 
 void playConnectionMelody() {
 	//Duty cycle sets the volume
-	TPM1_C0V = VOLUME; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
-	
-	int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0;
+	TPM1_C0V = VOLUME; // 5625
 	
 	for (int i = 0; i < TOTAL_CONNECTION_NOTES; i++) {
 		setFreq(connectionMelody[i]);
-		divider = connectionBeat[i];
-		noteDuration = wholenote / divider;
-		/* Tweak timing between notes here using numbers in connectionBeat */
-		osDelay(1000); 
+		// This should work. Deleted wholenote and divider cuz they are not used here
+		osDelay(1000/48); 
 	}
 }
 
 void playNarutoThemeMelody() {
 	//Duty cycle sets the volume
-	TPM1_C0V = VOLUME; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
+	TPM1_C0V = VOLUME; // 5625
 	
+	//Calculates the duration of a whole note in ms
+	// (60seconds/tempo)*4 
+	// 4 beats is in a scale
   int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0;
-  uint32_t period;
+  int divider = 0;
+	int	noteDuration = 0;
   
+	// Go through each note
     for(int i = 0; i < TOTAL_NARUTO_NOTES; i++) {
       divider = narutoThemeBeat[i];
       if (divider > 0) {
+				// Main notes
         noteDuration = (wholenote) / divider;
       } else if (divider < 0) {
+				// Side notes that needs to be played faster
+				// Since these notes are represented by negative numbers, we need to take its absolute values
         noteDuration = (wholenote) / (divider);
         noteDuration *= 1.5; 
       }
 
       setFreq(narutoThemeMelody[i]);
 			
-			/* Tweak timing between notes here using numbers in narutoThemeBeat */
-			/*Timing needs to change, playing each note for way too long*/
-      osDelay(100*2*9*noteDuration);
+			// We are dividing by 48 because the normal delay uses 1/48th of the value
+      osDelay(((100*2*9)/48)*noteDuration);
       TPM1->MOD = 0;
       TPM1_C0V = 0;
-      osDelay(100*2*10*noteDuration);
+      osDelay(((100*2*9)/48)*noteDuration);
 
     }
 }
 
 void playPinkPantherMelody() {
-  int notes = sizeof(pinkPantherMelody) / sizeof(pinkPantherMelody[0]);
-  int wholenote = (60000 * 4) / tempo;
-  int divider = 0, noteDuration = 0;
+	//Duty cycle sets the volume
+	TPM1_C0V = VOLUME; // 5625
   
+	// int notes = sizeof(pinkPantherMelody) / sizeof(pinkPantherMelody[0]); -> Can use this instead of TOTAL_PINKPANTHER_NOTES too!
+	
+	//Calculates the duration of a whole note in ms
+	// (60seconds/tempo)*4 
+	// 4 beats is in a scale
+  int wholenote = (60000 * 4) / tempo;
+  int divider = 0;
+	int noteDuration = 0;
+  
+		// Go through each note
     for(int i = 0; i < TOTAL_PINKPANTHER_NOTES; i++) {
       divider = pinkPantherBeat[i];
       if (divider > 0) {
+				// Main notes
         noteDuration = (wholenote) / divider;
       } else if (divider < 0) {
-        noteDuration = (wholenote) / (divider);
+				// Side notes that needs to be played faster
+				// Since these notes are represented by negative numbers, we need to take its absolute values
+        noteDuration = (wholenote) / (int)fabs((float)divider);
         noteDuration *= 1.5; 
       }
 
       setFreq(pinkPantherMelody[i]);
 			
-			/* Tweak timing between notes here using numbers in pinkPantherBeat */
-			/*Timing needs to change, playing each note for way too long*/
-      osDelay(100*2*9*noteDuration);
+			// We are dividing by 48 because the normal delay uses 1/48th of the value
+      osDelay(((100*2*9)/48)*noteDuration);
       TPM1->MOD = 0;
       TPM1_C0V = 0;
-      osDelay(100*2*10*noteDuration);
+      osDelay(((100*2*10)/48)*noteDuration);
     }
 }
 
