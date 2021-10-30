@@ -2,15 +2,20 @@
 
 // Adjust pace of the song here
 int tempo = 144;
+int volume = 0xEA6;
 
-int dumbNotes[] = {262, 294, 330, 349, 392, 440, 494};
+int totalConnectionNotes = 8;
+int totalNarutoNotes = 72;
+int totalPinkPantherNotes = 88;
+
+uint32_t dumbNotes[] = {262, 294, 330, 349, 392, 440, 494};
 
 // Unique one played for connection established
-int connectionMelody[] = {NOTEDOA, NOTE, NOTERA, NOTE, NOTERA, NOTE, NOTEDOA, NOTE};
+uint32_t connectionMelody[] = {NOTEDOA, NOTE, NOTERA, NOTE, NOTERA, NOTE, NOTEDOA, NOTE};
 int connectionBeat[] = {4, 2, 4, 2, 4, 2, 4, 2};
 
 // Song played during challenge
-int narutoThemeMelody[] = {
+uint32_t narutoThemeMelody[] = {
   NOTEMI, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
   NOTEFAS, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
   NOTESI, NOTE, NOTELA, NOTE, NOTESOL, NOTE,
@@ -42,7 +47,7 @@ int narutoThemeBeat[] = {
 };
 
 // Song played for end of challenge
-int pinkPantherMelody[] = {
+uint32_t pinkPantherMelody[] = {
   REST, REST, REST, NOTE_DS4, 
   NOTE_E4, REST, NOTE_FS4, NOTE_G4, REST, NOTE_DS4,
   NOTE_E4, NOTE_FS4,  NOTE_G4, NOTE_C5, NOTE_B4, NOTE_E4, NOTE_G4, NOTE_B4,   
@@ -115,7 +120,7 @@ void initAudioPWM()
 }
 
 
-void setFreq(int freq)
+void setFreq(uint32_t freq)
 {
 	TPM1->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK)); //Clearing bits for Cmod and ps 
 	TPM1->SC |= (TPM_SC_CMOD(1) | TPM_SC_PS(7)); //Set bits for CMOD and PS to above
@@ -128,9 +133,9 @@ void setFreq(int freq)
 
 void playConnectionMelody() {
 	//Duty cycle sets the volume
-	TPM1_C0V = VOLUME; // 5625
+	TPM1_C0V = volume; // 5625
 	
-	for (int i = 0; i < TOTAL_CONNECTION_NOTES; i++) {
+	for (int i = 0; i < totalConnectionNotes; i++) {
 		setFreq(connectionMelody[i]);
 		// This should work. Deleted wholenote and divider cuz they are not used here
 		osDelay(1000/48); 
@@ -139,7 +144,7 @@ void playConnectionMelody() {
 
 void playNarutoThemeMelody() {
 	//Duty cycle sets the volume
-	TPM1_C0V = VOLUME; // 5625
+	//TPM1_C0V = volume; // 5625
 	
 	//Calculates the duration of a whole note in ms
 	// (60seconds/tempo)*4 
@@ -149,7 +154,7 @@ void playNarutoThemeMelody() {
 	int	noteDuration = 0;
   
 	// Go through each note
-    for(int i = 0; i < TOTAL_NARUTO_NOTES; i++) {
+    for(int i = 0; i < totalNarutoNotes; i++) {
       divider = narutoThemeBeat[i];
       if (divider > 0) {
 				// Main notes
@@ -165,16 +170,13 @@ void playNarutoThemeMelody() {
 			
 			// We are dividing by 48 because the normal delay uses 1/48th of the value
       osDelay(((100*2*9)/48)*noteDuration);
-      TPM1->MOD = 0;
-      TPM1_C0V = 0;
-      osDelay(((100*2*9)/48)*noteDuration);
 
     }
 }
 
 void playPinkPantherMelody() {
 	//Duty cycle sets the volume
-	TPM1_C0V = VOLUME; // 5625
+	TPM1_C0V = volume; // 5625
   
 	// int notes = sizeof(pinkPantherMelody) / sizeof(pinkPantherMelody[0]); -> Can use this instead of TOTAL_PINKPANTHER_NOTES too!
 	
@@ -186,7 +188,7 @@ void playPinkPantherMelody() {
 	int noteDuration = 0;
   
 		// Go through each note
-    for(int i = 0; i < TOTAL_PINKPANTHER_NOTES; i++) {
+    for(int i = 0; i < totalPinkPantherNotes; i++) {
       divider = pinkPantherBeat[i];
       if (divider > 0) {
 				// Main notes
@@ -202,18 +204,21 @@ void playPinkPantherMelody() {
 			
 			// We are dividing by 48 because the normal delay uses 1/48th of the value
       osDelay(((100*2*9)/48)*noteDuration);
-      TPM1->MOD = 0;
-      TPM1_C0V = 0;
-      osDelay(((100*2*10)/48)*noteDuration);
+      //TPM1->MOD = 0;
+      //TPM1_C0V = 0;
+      //osDelay(((100*2*10)/48)*noteDuration);
     }
 }
 
+/**
+* Temporary Connection melody. Try to make it about this long
+*/
 void playDumbNotes()
 {
 	TPM1_C0V = 0x0EA6; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
 	for (int i = 0; i < 6; i++) {
 		setFreq(dumbNotes[i]);
-		osDelay(2000);
+		osDelay(200);
 	}
 }
 

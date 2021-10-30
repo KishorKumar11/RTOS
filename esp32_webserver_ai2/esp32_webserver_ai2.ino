@@ -145,6 +145,16 @@ void loop() {
     response = "Decrease speed command received";
     Serial2.write(0x1b);
   }
+  if(req.indexOf("finishLevel") != -1)
+  {
+    response = "Finish Level command received";
+    Serial2.write(0x30);
+  }
+  if(req.indexOf("reset") != -1)
+  {
+    response = "Reset command received";
+    Serial2.write(0x40);
+  }
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: text/html");
