@@ -342,9 +342,11 @@ void tAudio (void* Argument) {
 			case 1: 
 				playDumbNotes();
 				offSound();
+				osDelay(500);
 				song = 2;
 				break;
 			case 2:
+				playPinkPantherMelody();
 				//playNarutoThemeMelody();
 				break;
 			case 3:

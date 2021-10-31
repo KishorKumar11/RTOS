@@ -128,7 +128,7 @@ void setFreq(uint32_t freq)
 	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
 	TPM1->MOD = 375000 / freq;
 	// Divide by octate
-	TPM1_C0V = TPM1->MOD / 8;
+	TPM1_C0V = TPM1->MOD / 4;
 }
 
 void playConnectionMelody() {
@@ -201,9 +201,10 @@ void playPinkPantherMelody() {
       }
 
       setFreq(pinkPantherMelody[i]);
+			//osDelay(500);
 			
 			// We are dividing by 48 because the normal delay uses 1/48th of the value
-      osDelay(((100*2*9)/48)*noteDuration);
+      osDelay(((5*2*9)/48)*noteDuration);
       //TPM1->MOD = 0;
       //TPM1_C0V = 0;
       //osDelay(((100*2*10)/48)*noteDuration);
