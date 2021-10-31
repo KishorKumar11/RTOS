@@ -50,14 +50,6 @@ typedef struct {
 	uint8_t message;
 } MessageObjectType;
 
-/*
-static void delay(volatile uint32_t nof) {
-  while(nof!=0) {
-    __asm("NOP");
-    nof--;
-  }
-}*/
-
 void initUART2(uint32_t baud_rate) {
 	SIM->SCGC4 |= SIM_SCGC4_UART2_MASK;
 	SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
@@ -340,14 +332,13 @@ void tAudio (void* Argument) {
 		
 		switch (song) {
 			case 1: 
-				playDumbNotes();
+				playConnectionMelody();
 				offSound();
 				osDelay(500);
 				song = 2;
 				break;
 			case 2:
-				playPinkPantherMelody();
-				//playNarutoThemeMelody();
+				playNarutoThemeMelody();
 				break;
 			case 3:
 				playPinkPantherMelody();

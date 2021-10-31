@@ -5,45 +5,41 @@ int tempo = 144;
 int volume = 0xEA6;
 
 int totalConnectionNotes = 8;
-int totalNarutoNotes = 72;
+int totalNarutoNotes = 36;
 int totalPinkPantherNotes = 88;
 
-uint32_t dumbNotes[] = {262, 294, 330, 349, 392, 440, 494};
-
-// Unique one played for connection established
-uint32_t connectionMelody[] = {NOTEDOA, NOTE, NOTERA, NOTE, NOTERA, NOTE, NOTEDOA, NOTE};
-int connectionBeat[] = {4, 2, 4, 2, 4, 2, 4, 2};
+uint32_t connectionMelody[] = {262, 294, 330, 349, 392, 440, 494};
 
 // Song played during challenge
 uint32_t narutoThemeMelody[] = {
-  NOTEMI, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
-  NOTEFAS, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
-  NOTESI, NOTE, NOTELA, NOTE, NOTESOL, NOTE,
-  NOTELA, NOTE, NOTESOL, NOTE, NOTEFAS, NOTE,
+  NOTEMI, NOTEMI, NOTEMI,
+  NOTEFAS, NOTEMI, NOTEMI,
+  NOTESI, NOTELA, NOTESOL,
+  NOTELA, NOTESOL, NOTEFAS,
     
-  NOTEMI, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
-  NOTEFAS, NOTE, NOTEMI, NOTE, NOTEMI, NOTE,
-  NOTEREA, NOTE, NOTELA, NOTE, NOTEMI, NOTE,
-  NOTEMI, NOTE, NOTEMI, NOTE, NOTEFAS, NOTE,
+  NOTEMI, NOTEMI, NOTEMI,
+  NOTEFAS, NOTEMI, NOTEMI,
+  NOTEREA, NOTELA, NOTEMI,
+  NOTEMI, NOTEMI, NOTEFAS,
     
-  NOTEMI, NOTE, NOTEMI, NOTE, NOTESI, NOTE,
-  NOTELA, NOTE,  NOTESOL, NOTE, NOTELA, NOTE,
-  NOTESOL, NOTE, NOTEFAS, NOTE, NOTEDOA, NOTE,
-  NOTEDOA, NOTE, NOTESI, NOTE, NOTESI, NOTE
+  NOTEMI, NOTEMI, NOTESI,
+  NOTELA,  NOTESOL, NOTELA,
+  NOTESOL, NOTEFAS, NOTEDOA,
+  NOTEDOA, NOTESI, NOTESI
 };
 int narutoThemeBeat[] = {
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2,
-	4, 2, 4, 2, 4, 2
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4,
+	4, 4, 4
 };
 
 // Song played for end of challenge
@@ -132,13 +128,10 @@ void setFreq(uint32_t freq)
 }
 
 void playConnectionMelody() {
-	//Duty cycle sets the volume
-	TPM1_C0V = volume; // 5625
-	
-	for (int i = 0; i < totalConnectionNotes; i++) {
+	TPM1_C0V = 0x0EA6; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
+	for (int i = 0; i < 6; i++) {
 		setFreq(connectionMelody[i]);
-		// This should work. Deleted wholenote and divider cuz they are not used here
-		osDelay(1000/48); 
+		osDelay(200);
 	}
 }
 
@@ -169,7 +162,7 @@ void playNarutoThemeMelody() {
       setFreq(narutoThemeMelody[i]);
 			
 			// We are dividing by 48 because the normal delay uses 1/48th of the value
-      osDelay(((100*2*9)/48)*noteDuration);
+      osDelay(((5*2*9)/48)*noteDuration);
 
     }
 }
@@ -209,18 +202,6 @@ void playPinkPantherMelody() {
       //TPM1_C0V = 0;
       //osDelay(((100*2*10)/48)*noteDuration);
     }
-}
-
-/**
-* Temporary Connection melody. Try to make it about this long
-*/
-void playDumbNotes()
-{
-	TPM1_C0V = 0x0EA6; // 0xEA6 = 3750 (half of 7500) -> 50% duty cycle CH0
-	for (int i = 0; i < 6; i++) {
-		setFreq(dumbNotes[i]);
-		osDelay(200);
-	}
 }
 
 void offSound()

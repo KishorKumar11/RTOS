@@ -123,8 +123,6 @@ void playPinkPantherMelody(void);
 
 void setFreq(uint32_t freq);
 
-void playDumbNotes(void);
-
 void offSound(void);
 
 #endif
