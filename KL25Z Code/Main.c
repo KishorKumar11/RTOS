@@ -64,6 +64,10 @@ void tBrain (void* argument) {
 		if ((message >> 4) == 0x4) { //Reset Level message
 			isDone = 0;
 		}
+		if ((message >> 4) == 0x5) { //Change to auto driving mode
+		}
+		if ((message >> 4) == 0x6) { //Change to manual driving mode
+		}
 	}
 }
 

@@ -155,6 +155,16 @@ void loop() {
     response = "Reset command received";
     Serial2.write(0x40);
   }
+  if(req.indexOf("setAuto") != -1)
+  {
+    response = "Set Auto command received";
+    Serial2.write(0x50);
+  }
+  if(req.indexOf("setManual") != -1)
+  {
+    response = "Set Manual command received";
+    Serial2.write(0x60);
+  }
 
   client.println("HTTP/1.1 200 OK");
   client.println("Content-Type: text/html");

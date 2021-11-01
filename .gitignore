@@ -2,5 +2,6 @@
 *.uvguix.*
 *.scvd
 *.aia
-/Listings/
-/Objects/
+KL25Z Code/Objects/
+KL25Z Code/Listings/
+
