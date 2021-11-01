@@ -10,4 +10,14 @@
 #include "cmsis_os2.h"
 #include "constants.h"
 
+typedef struct {
+	uint8_t message;
+} MessageObjectType;
+
+extern osMessageQueueId_t brainMessageQueue;
+extern osMessageQueueId_t motorMessageQueue;
+extern osMessageQueueId_t redLedMessageQueue;
+extern osMessageQueueId_t greenLedMessageQueue;
+extern osMessageQueueId_t audioMessageQueue;
+
 #endif

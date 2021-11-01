@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\RobotTest.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\RobotTest.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Nov 01 09:20:06 2021
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Nov 01 09:57:54 2021
 <BR><P>
 <H3>Maximum Stack Usage =        120 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -64,7 +64,7 @@ Function Pointers
  <LI><a href="#[25]">TSI0_IRQHandler</a> from startup_mkl25z4.o(.text) referenced from startup_mkl25z4.o(RESET)
  <LI><a href="#[17]">UART0_IRQHandler</a> from startup_mkl25z4.o(.text) referenced from startup_mkl25z4.o(RESET)
  <LI><a href="#[18]">UART1_IRQHandler</a> from startup_mkl25z4.o(.text) referenced from startup_mkl25z4.o(RESET)
- <LI><a href="#[19]">UART2_IRQHandler</a> from main.o(i.UART2_IRQHandler) referenced from startup_mkl25z4.o(RESET)
+ <LI><a href="#[19]">UART2_IRQHandler</a> from uart.o(i.UART2_IRQHandler) referenced from startup_mkl25z4.o(RESET)
  <LI><a href="#[23]">USB0_IRQHandler</a> from startup_mkl25z4.o(.text) referenced from startup_mkl25z4.o(RESET)
  <LI><a href="#[48]">__main</a> from __main.o(!!!main) referenced from startup_mkl25z4.o(.text)
  <LI><a href="#[39]">osRtxIdleThread</a> from rtx_config.o(i.osRtxIdleThread) referenced from rtx_thread.o(.text.osRtxThreadStartup)
@@ -207,7 +207,7 @@ Global Symbols
 
 <P><STRONG><a name="[57]"></a>__rt_entry_main</STRONG> (Thumb, 0 bytes, Stack size unknown bytes, __rtentry2.o(.ARM.Collect$$rtentry$$0000000D))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24 + Unknown Stack Size
-<LI>Call Chain = __rt_entry_main &rArr; main &rArr; SystemCoreClockUpdate &rArr; __ARM_common_switch8
+<LI>Call Chain = __rt_entry_main &rArr; main &rArr; initUART2 &rArr; __NVIC_SetPriority
 </UL>
 <BR>[Calls]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 <LI><a href="#[59]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;exit
@@ -460,8 +460,8 @@ Global Symbols
 
 <P><STRONG><a name="[99]"></a>__aeabi_uidivmod</STRONG> (Thumb, 20 bytes, Stack size 0 bytes, aeabi_sdiv.o(.text))
 <BR><BR>[Called By]<UL><LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;setFreq
-<LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
 <LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2
+<LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
 </UL>
 
 <P><STRONG><a name="[e4]"></a>__aeabi_idiv</STRONG> (Thumb, 0 bytes, Stack size 8 bytes, aeabi_sdiv.o(.text), UNUSED)
@@ -632,8 +632,8 @@ Global Symbols
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxMemoryPoolAlloc
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
 </UL>
-<BR>[Called By]<UL><LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tBrain
-<LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART2_IRQHandler
+<BR>[Called By]<UL><LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART2_IRQHandler
+<LI><a href="#[42]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tBrain
 <LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxTimerTick
 </UL>
 
@@ -919,11 +919,11 @@ Global Symbols
 <P><STRONG><a name="[2b]"></a>SystemInit</STRONG> (Thumb, 266 bytes, Stack size 0 bytes, system_mkl25z4.o(i.SystemInit))
 <BR>[Address Reference Count : 1]<UL><LI> startup_mkl25z4.o(.text)
 </UL>
-<P><STRONG><a name="[19]"></a>UART2_IRQHandler</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, main.o(i.UART2_IRQHandler))
+<P><STRONG><a name="[19]"></a>UART2_IRQHandler</STRONG> (Thumb, 44 bytes, Stack size 16 bytes, uart.o(i.UART2_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = UART2_IRQHandler &rArr; osMessageQueuePut &rArr; osRtxPostProcess &rArr; osRtxErrorNotify &rArr; __ARM_common_switch8
 </UL>
-<BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMessageQueuePut
-<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__NVIC_ClearPendingIRQ
+<BR>[Calls]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__NVIC_ClearPendingIRQ
+<LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMessageQueuePut
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_mkl25z4.o(RESET)
 </UL>
@@ -975,15 +975,15 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a6]"></a>initLED</STRONG> (Thumb, 248 bytes, Stack size 0 bytes, main.o(i.initLED))
+<P><STRONG><a name="[a6]"></a>initGreenLED</STRONG> (Thumb, 248 bytes, Stack size 0 bytes, led.o(i.initGreenLED))
 <BR><BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a2]"></a>initPWM0</STRONG> (Thumb, 180 bytes, Stack size 0 bytes, main.o(i.initPWM0))
+<P><STRONG><a name="[a2]"></a>initPWM0</STRONG> (Thumb, 180 bytes, Stack size 0 bytes, motor.o(i.initPWM0))
 <BR><BR>[Called By]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initPWMMotors
 </UL>
 
-<P><STRONG><a name="[a1]"></a>initPWMMotors</STRONG> (Thumb, 12 bytes, Stack size 4 bytes, main.o(i.initPWMMotors))
+<P><STRONG><a name="[a1]"></a>initPWMMotors</STRONG> (Thumb, 12 bytes, Stack size 4 bytes, motor.o(i.initPWMMotors))
 <BR><BR>[Stack]<UL><LI>Max Depth = 4<LI>Call Chain = initPWMMotors
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initPortD
@@ -992,7 +992,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a3]"></a>initPortD</STRONG> (Thumb, 120 bytes, Stack size 0 bytes, main.o(i.initPortD))
+<P><STRONG><a name="[a3]"></a>initPortD</STRONG> (Thumb, 120 bytes, Stack size 0 bytes, motor.o(i.initPortD))
 <BR><BR>[Called By]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initPWMMotors
 </UL>
 
@@ -1000,7 +1000,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[58]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[a4]"></a>initUART2</STRONG> (Thumb, 192 bytes, Stack size 16 bytes, main.o(i.initUART2))
+<P><STRONG><a name="[a4]"></a>initUART2</STRONG> (Thumb, 192 bytes, Stack size 16 bytes, uart.o(i.initUART2))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = initUART2 &rArr; __NVIC_SetPriority
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__NVIC_SetPriority
@@ -1011,18 +1011,18 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[58]"></a>main</STRONG> (Thumb, 160 bytes, Stack size 0 bytes, main.o(i.main))
-<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = main &rArr; SystemCoreClockUpdate &rArr; __ARM_common_switch8
+<BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = main &rArr; initUART2 &rArr; __NVIC_SetPriority
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadNew
 <LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMessageQueueNew
 <LI><a href="#[aa]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelStart
 <LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelInitialize
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initSound
+<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initPWMMotors
+<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initGreenLED
 <LI><a href="#[a8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initAudioPWM
 <LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemCoreClockUpdate
-<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2
-<LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initPWMMotors
-<LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initLED
 </UL>
 <BR>[Called By]<UL><LI><a href="#[57]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_entry_main
 </UL>
@@ -1037,9 +1037,9 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 </UL>
 <BR>[Called By]<UL><LI><a href="#[4b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_mutex_initialize
-<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxTimerTick
 <LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxThreadStackCheck
 <LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxPostProcess
+<LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osRtxTimerTick
 </UL>
 
 <P><STRONG><a name="[39]"></a>osRtxIdleThread</STRONG> (Thumb, 4 bytes, Stack size 0 bytes, rtx_config.o(i.osRtxIdleThread))
@@ -1092,7 +1092,7 @@ Global Symbols
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;playConnectionMelody
 </UL>
 
-<P><STRONG><a name="[b6]"></a>stop</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, main.o(i.stop))
+<P><STRONG><a name="[b6]"></a>stop</STRONG> (Thumb, 14 bytes, Stack size 0 bytes, motor.o(i.stop))
 <BR><BR>[Called By]<UL><LI><a href="#[43]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;tMotorControl
 </UL>
 
@@ -1128,8 +1128,8 @@ Global Symbols
 <P><STRONG><a name="[43]"></a>tMotorControl</STRONG> (Thumb, 288 bytes, Stack size 8 bytes, main.o(i.tMotorControl))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = tMotorControl &rArr; osMessageQueueGet &rArr; osRtxPostProcess &rArr; osRtxErrorNotify &rArr; __ARM_common_switch8
 </UL>
-<BR>[Calls]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMessageQueueGet
-<LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;stop
+<BR>[Calls]<UL><LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;stop
+<LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osMessageQueueGet
 <LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__ARM_common_switch8
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_dmul
 <LI><a href="#[68]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2d
@@ -1143,12 +1143,12 @@ Global Symbols
 <H3>
 Local Symbols
 </H3>
-<P><STRONG><a name="[9b]"></a>__NVIC_ClearPendingIRQ</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, main.o(i.__NVIC_ClearPendingIRQ))
-<BR><BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2
-<LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART2_IRQHandler
+<P><STRONG><a name="[9b]"></a>__NVIC_ClearPendingIRQ</STRONG> (Thumb, 18 bytes, Stack size 0 bytes, uart.o(i.__NVIC_ClearPendingIRQ))
+<BR><BR>[Called By]<UL><LI><a href="#[19]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART2_IRQHandler
+<LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2
 </UL>
 
-<P><STRONG><a name="[a5]"></a>__NVIC_SetPriority</STRONG> (Thumb, 110 bytes, Stack size 8 bytes, main.o(i.__NVIC_SetPriority))
+<P><STRONG><a name="[a5]"></a>__NVIC_SetPriority</STRONG> (Thumb, 110 bytes, Stack size 8 bytes, uart.o(i.__NVIC_SetPriority))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = __NVIC_SetPriority
 </UL>
 <BR>[Called By]<UL><LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;initUART2

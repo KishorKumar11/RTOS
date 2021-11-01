@@ -1,27 +1,13 @@
+#include "UART.h"
+#include "motor.h"
 #include "sound.h"
-
-/*For UART*/
-#define BAUD_RATE 9600
-#define UART_TX_PORTE 22
-#define UART_RX_PORTE 23 
-
-/*For Motor*/
-#define LF_Pin TPM0_C2V
-#define LR_Pin TPM0_C0V
-#define RF_Pin TPM0_C3V
-#define RR_Pin TPM0_C1V
+#include "LED.h"
 
 volatile direction dir = 0;
 volatile int speed = 7000;
 volatile int isDone = 0;
 
 #define QUEUE_SIZE 3
-
-osMessageQueueId_t brainMessageQueue;
-osMessageQueueId_t motorMessageQueue;
-osMessageQueueId_t redLedMessageQueue;
-osMessageQueueId_t greenLedMessageQueue;
-osMessageQueueId_t audioMessageQueue;
 
 const osThreadAttr_t veryHighPriority = {
 		.priority = osPriorityHigh4
@@ -39,128 +25,11 @@ const osThreadAttr_t normalPriority = {
 		.priority = osPriorityAboveNormal
 };
 
-typedef struct {
-	uint8_t message;
-} MessageObjectType;
-
-void initUART2(uint32_t baud_rate) {
-	SIM->SCGC4 |= SIM_SCGC4_UART2_MASK;
-	SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
-	
-	PORTE->PCR[22] &= ~PORT_PCR_MUX_MASK;
-	PORTE->PCR[22] |= PORT_PCR_MUX(4);
-	
-	PORTE->PCR[23] &= ~PORT_PCR_MUX_MASK;
-	PORTE->PCR[23] |= PORT_PCR_MUX(4);
-	
-	UART2->C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK);
-	
-	uint32_t divisor = DEFAULT_SYSTEM_CLOCK / (32 * baud_rate);
-	UART2->BDH = UART_BDH_SBR(divisor >> 8);
-	UART2->BDL = UART_BDL_SBR(divisor);
-	
-	UART2->C1 = 0;
-	UART2->S2 = 0;
-	UART2->C3 = 0;
-	
-	UART2->C2 |= (UART_C2_RIE_MASK);
-	UART2->C2 |= (UART_C2_RE_MASK);
-	
-	NVIC_SetPriority(UART2_IRQn, 1);
-	NVIC_ClearPendingIRQ(UART2_IRQn);
-	NVIC_EnableIRQ(UART2_IRQn);
-}
-
-void UART2_IRQHandler() {
-	NVIC_ClearPendingIRQ(UART2_IRQn);
-	if (UART2_S1 & UART_S1_RDRF_MASK) {
-		uint8_t serialValue = UART2->D;
-		MessageObjectType messageObject;
-		messageObject.message = serialValue;
-		osMessageQueuePut(brainMessageQueue, &messageObject, 0, 0);
-	}
-}
-
-void initPWM0() {
-	// Enable CLock Gating for Timer 0
-	SIM_SCGC6 |= SIM_SCGC6_TPM0_MASK;
-	
-	// Select Clock for TPM module
-	SIM->SOPT2 &= ~SIM_SOPT2_TPMSRC_MASK;
-	SIM->SOPT2 |= SIM_SOPT2_TPMSRC(1); //MCGFLLCLK clock or MCGPLLCLK/2
-	
-	//Set Modulo Value (48000000 / 128) / 7500 = 50Hz MOD value = 7500
-	TPM0->MOD = 7500;
-	
-	/*Edge-Aligned PWM*/
-	
-	//Update Status&Control Registers and set bits to CMOD:01, PS:111 (prescalar 128)
-	TPM0->SC &= ~((TPM_SC_CMOD_MASK) | (TPM_SC_PS_MASK));
-	TPM0->SC |= (TPM_SC_CMOD(1) | TPM_SC_PS(1));
-	TPM0->SC &= ~(TPM_SC_CPWMS_MASK); //Set to upcount PWM
-	
-	//Enable PWM on TPM0 Channel 0 -> PTD0
-	TPM0_C0SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C0SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 1 -> PTD1
-	TPM0_C1SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C1SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 2 -> PTD2
-	TPM0_C2SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C2SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-	//Enable PWM on TPM2 Channel 3 -> PTD3
-	TPM0_C3SC &= ~((TPM_CnSC_ELSB_MASK) | (TPM_CnSC_ELSA_MASK) | (TPM_CnSC_MSB_MASK) | (TPM_CnSC_MSA_MASK)); //Clearing Bits
-	TPM0_C3SC |= (TPM_CnSC_ELSB(1) | TPM_CnSC_MSB(1));//Set bits to edge-aligned pwm high true pulses
-}
-
-void initPortD() {
-	// 1. Set Pins PORT D, enable clk gating
-	
-	//Enable clk gating for PORT D
-	SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-	
-	//Set MUX for PORT D
-	PORTD->PCR[0] &= ~(PORT_PCR_MUX_MASK);
-	PORTD->PCR[0] |= PORT_PCR_MUX(4);
-	PORTD->PCR[1] &= ~(PORT_PCR_MUX_MASK);
-	PORTD->PCR[1] |= PORT_PCR_MUX(4);
-	PORTD->PCR[2] &= ~(PORT_PCR_MUX_MASK);
-	PORTD->PCR[2] |= PORT_PCR_MUX(4);
-	PORTD->PCR[3] &= ~(PORT_PCR_MUX_MASK);
-	PORTD->PCR[3] |= PORT_PCR_MUX(4);
-}
-
-
-
-void initPWMMotors() {
-	initPWM0();
-	initPortD();
-}
-
-
-void initLED() {
-	SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
-	
-  PORTB->PCR[0] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[0] |= PORT_PCR_MUX(1);
-	PORTB->PCR[1] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[1] |= PORT_PCR_MUX(1);
-	PORTB->PCR[2] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[2] |= PORT_PCR_MUX(1);
-	PORTB->PCR[3] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[3] |= PORT_PCR_MUX(1);
-	PORTB->PCR[8] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[8] |= PORT_PCR_MUX(1);
-	PORTB->PCR[9] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[9] |= PORT_PCR_MUX(1);
-	PORTB->PCR[10] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[10] |= PORT_PCR_MUX(1);
-	PORTB->PCR[11] &= ~PORT_PCR_MUX_MASK;
-	PORTB->PCR[11] |= PORT_PCR_MUX(1);
-	
-	PTB->PDDR |= (0b1111 << 8) | 0b1111;
-	PTB->PCOR |= (0b1111 << 8) | 0b1111;
-}
+osMessageQueueId_t brainMessageQueue;
+osMessageQueueId_t motorMessageQueue;
+osMessageQueueId_t redLedMessageQueue;
+osMessageQueueId_t greenLedMessageQueue;
+osMessageQueueId_t audioMessageQueue;
 
 void tBrain (void* argument) {
 	for(;;) {
@@ -196,13 +65,6 @@ void tBrain (void* argument) {
 			isDone = 0;
 		}
 	}
-}
-
-void stop() {
-	LF_Pin = 0;
-	RF_Pin = 0; 
-	LR_Pin = 0;
-	RR_Pin = 0;
 }
 
 void tMotorControl (void *argument) {
@@ -358,7 +220,7 @@ int main (void) {
   SystemCoreClockUpdate();
 	initUART2(BAUD_RATE);
 	initPWMMotors();
-	initLED();
+	initGreenLED();
 	initSound();
 	initAudioPWM();
  
