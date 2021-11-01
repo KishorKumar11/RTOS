@@ -2,3 +2,5 @@
 *.uvguix.*
 *.scvd
 *.aia
+/Listings/
+/Objects/
