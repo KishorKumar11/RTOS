@@ -1,8 +1,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include "MKL25Z4.h" 
-#include "cmsis_os2.h"
+#include "basic.h"
 #include <math.h>
 
 #define PTE20_Pin 20
@@ -117,7 +116,7 @@ void initAudioPWM(void);
 
 void playConnectionMelody(void);
 
-void playNarutoThemeMelody(void);
+int playNarutoThemeMelody(volatile int* isDone);
 
 void playPinkPantherMelody(void);
 

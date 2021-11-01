@@ -1,11 +1,3 @@
-#include "MKL25Z4.h"
-/* Default Core Clk Freq is 20.97152MHz */
-// Current code will run at 48 MHz core clk freq
-
-#include "RTE_Components.h"
-#include  CMSIS_device_header
-#include "cmsis_os2.h"
-#include "constants.h"
 #include "sound.h"
 
 /*For UART*/
@@ -21,6 +13,7 @@
 
 volatile direction dir = 0;
 volatile int speed = 7000;
+volatile int isDone = 0;
 
 #define QUEUE_SIZE 3
 
@@ -196,6 +189,12 @@ void tBrain (void* argument) {
 			audioMessage.message = 0x1;
 			osMessageQueuePut(audioMessageQueue, &audioMessage, 0, 0);
 		}
+		if ((message >> 4) == 0x3) { //Finish Level message
+			isDone = 1;
+		}
+		if ((message >> 4) == 0x4) { //Reset Level message
+			isDone = 0;
+		}
 	}
 }
 
@@ -338,10 +337,12 @@ void tAudio (void* Argument) {
 				song = 2;
 				break;
 			case 2:
-				playNarutoThemeMelody();
+				song = playNarutoThemeMelody(&isDone);
 				break;
 			case 3:
 				playPinkPantherMelody();
+				offSound();
+				osDelay(500);
 				song = 0;
 				break;
 			default:

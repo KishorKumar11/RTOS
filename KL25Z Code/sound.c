@@ -135,9 +135,7 @@ void playConnectionMelody() {
 	}
 }
 
-void playNarutoThemeMelody() {
-	//Duty cycle sets the volume
-	//TPM1_C0V = volume; // 5625
+int playNarutoThemeMelody(volatile int* isDone) {
 	
 	//Calculates the duration of a whole note in ms
 	// (60seconds/tempo)*4 
@@ -148,6 +146,9 @@ void playNarutoThemeMelody() {
   
 	// Go through each note
     for(int i = 0; i < totalNarutoNotes; i++) {
+			if (*isDone == 1) {
+				return 3;
+			}
       divider = narutoThemeBeat[i];
       if (divider > 0) {
 				// Main notes
@@ -165,6 +166,7 @@ void playNarutoThemeMelody() {
       osDelay(((5*2*9)/48)*noteDuration);
 
     }
+	return 2;
 }
 
 void playPinkPantherMelody() {
