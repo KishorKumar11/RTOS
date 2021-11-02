@@ -44,10 +44,16 @@ void tBrain (void* argument) {
 				MessageObjectType greenLedMessage;
 				greenLedMessage.message = 0x2;
 				osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+				MessageObjectType redLedMessage;
+				redLedMessage.message = 0x1;
+				osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
 			} else {
 				MessageObjectType greenLedMessage;
 				greenLedMessage.message = 0x0;
 				osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+				MessageObjectType redLedMessage;
+				redLedMessage.message = 0x0;
+				osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
 			}
 		}
 		if ((message >> 4) == 0x2) { //internet connection message
@@ -182,7 +188,26 @@ void tGreenLED (void* Argument) {
 }
 
 void tRedLED (void* Argument) {
+	int state = 0;
 	
+	for (;;) {
+		MessageObjectType messageObject;
+		osStatus_t messageStatus = osMessageQueueGet(redLedMessageQueue, &messageObject, 0, 0);
+		if (messageStatus == osOK) {
+			state = messageObject.message;
+		}
+		
+		switch (state) {
+			case 0: //stationary
+				flash(250);
+				break;
+			case 1: //moving
+				flash(500);
+				break;
+			default:
+				state = 0;
+		}
+	}
 	
 }
 
@@ -225,6 +250,7 @@ int main (void) {
 	initUART2(BAUD_RATE);
 	initPWMMotors();
 	initGreenLED();
+	initRedLED();
 	initSound();
 	initAudioPWM();
  

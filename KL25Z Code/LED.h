@@ -5,4 +5,8 @@
 
 void initGreenLED(void);
 
+void initRedLED(void);
+
+void flash(int rate);
+
 #endif
