@@ -27,8 +27,8 @@ void initGreenLED() {
 void initRedLED() {
 	SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
 	
-	PORTA->PCR[7] &= ~PORT_PCR_MUX_MASK;
-	PORTA->PCR[7] |= PORT_PCR_MUX(1);
+	PORTC->PCR[7] &= ~PORT_PCR_MUX_MASK;
+	PORTC->PCR[7] |= PORT_PCR_MUX(1);
 	
 	PTC->PDDR |= 1 << 7;
 	PTC->PCOR |= 1 << 7;

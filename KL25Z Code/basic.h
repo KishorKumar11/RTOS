@@ -12,7 +12,11 @@
 
 typedef struct {
 	uint8_t message;
-} MessageObjectType;
+} MessageObject_t;
+
+typedef struct {
+	uint32_t message;
+} LongMessageObject_t;
 
 extern osMessageQueueId_t brainMessageQueue;
 extern osMessageQueueId_t motorMessageQueue;

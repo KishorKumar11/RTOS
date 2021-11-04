@@ -32,7 +32,7 @@ void UART2_IRQHandler() {
 	NVIC_ClearPendingIRQ(UART2_IRQn);
 	if (UART2_S1 & UART_S1_RDRF_MASK) {
 		uint8_t serialValue = UART2->D;
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		messageObject.message = serialValue;
 		osMessageQueuePut(brainMessageQueue, &messageObject, 0, 0);
 	}

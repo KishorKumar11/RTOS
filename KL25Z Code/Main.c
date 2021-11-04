@@ -8,8 +8,7 @@ volatile direction dir = 0;
 volatile int speed = 7000;
 volatile int isDone = 0;
 
-#define QUEUE_SIZE 3
-#define TURN_MULTIPLIER 0.5;
+#define QUEUE_SIZE 4
 
 const osThreadAttr_t brainPriority = {
 		.priority = osPriorityHigh4
@@ -45,41 +44,57 @@ osSemaphoreId_t ultrasonicSemaphore;
 osSemaphoreId_t autoStartSemaphore;
 osSemaphoreId_t autoStopSemaphore;
 
+void playAudio(uint8_t song) {
+	MessageObject_t audioMessage;
+	audioMessage.message = song;
+	osMessageQueuePut(audioMessageQueue, &audioMessage, 0, 0);
+}
+
+void flashGreenLED() {
+	MessageObject_t greenLedMessage;
+	greenLedMessage.message = 0x1;
+	osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+}
+
+void moveLED() {
+	MessageObject_t greenLedMessage;
+	greenLedMessage.message = 0x2;
+	osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+	MessageObject_t redLedMessage;
+	redLedMessage.message = 0x1;
+	osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
+}
+
+void stopLED() {
+	MessageObject_t greenLedMessage;
+	greenLedMessage.message = 0x0;
+	osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
+	MessageObject_t redLedMessage;
+	redLedMessage.message = 0x0;
+	osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
+}
+
 void tBrain (void* argument) {
+	int isManualMode = 1;
 	for(;;) {
-		int isManualMode = 1;
 		
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		osMessageQueueGet(brainMessageQueue, &messageObject, NULL, osWaitForever);
 		uint8_t message = messageObject.message;
 		if (isManualMode) {
 			if ((message >> 4) == 0x1) { //motor control instructions
-				MessageObjectType motorMessage;
+				MessageObject_t motorMessage;
 				motorMessage.message = (message & 0x0F); //only the 4 LSB
 				osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-				if (motorMessage.message) { //if its moving, todo add case for incresae/decrease speed
-					MessageObjectType greenLedMessage;
-					greenLedMessage.message = 0x2;
-					osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
-					MessageObjectType redLedMessage;
-					redLedMessage.message = 0x1;
-					osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
-				} else {
-					MessageObjectType greenLedMessage;
-					greenLedMessage.message = 0x0;
-					osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
-					MessageObjectType redLedMessage;
-					redLedMessage.message = 0x0;
-					osMessageQueuePut(redLedMessageQueue, &redLedMessage, 0, 0);
+				if (motorMessage.message) { //if its moving
+					moveLED();
+				} else { //if stop
+					stopLED();
 				}
 			}
 			if ((message >> 4) == 0x2) { //internet connection message
-				MessageObjectType greenLedMessage;
-				greenLedMessage.message = 0x1;
-				osMessageQueuePut(greenLedMessageQueue, &greenLedMessage, 0, 0);
-				MessageObjectType audioMessage;
-				audioMessage.message = 0x1;
-				osMessageQueuePut(audioMessageQueue, &audioMessage, 0, 0);
+				flashGreenLED();
+				playAudio(1);
 			}
 			if ((message >> 4) == 0x3) { //Finish Level message
 				isDone = 1;
@@ -88,7 +103,9 @@ void tBrain (void* argument) {
 				isDone = 0;
 			}
 			if ((message >> 4) == 0x5) { //Change to auto driving mode
+				isDone = 0;
 				isManualMode = 0;
+				osSemaphoreAcquire(autoStopSemaphore, 0);
 				osSemaphoreRelease(autoStartSemaphore);
 			}
 		}
@@ -101,6 +118,8 @@ void tBrain (void* argument) {
 	}
 }
 
+#define TURN_MULTIPLIER 0.5;
+#define SPIN_MULTIPLIER 0.9;
 
 void tMotorControl (void *argument) {
 	//LF: PTD2 C2V
@@ -108,7 +127,7 @@ void tMotorControl (void *argument) {
 	//RF: PTD3 C3V
 	//RR: PTD1 C1V
   for (;;) {
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		osMessageQueueGet(motorMessageQueue, &messageObject, NULL, osWaitForever); 
 		switch(messageObject.message) {
 			case 0x0: //STOP
@@ -139,12 +158,12 @@ void tMotorControl (void *argument) {
 				RR_Pin = speed * TURN_MULTIPLIER;
 				break;
 			case 0x8: //SPINLEFT
-				LR_Pin = speed;
-				RF_Pin = speed;
+				LR_Pin = speed * SPIN_MULTIPLIER;
+				RF_Pin = speed * SPIN_MULTIPLIER;
 				break;
 			case 0x9: //SPINRIGHT
-				LF_Pin = speed;
-				RR_Pin = speed;
+				LF_Pin = speed * SPIN_MULTIPLIER;
+				RR_Pin = speed * SPIN_MULTIPLIER;
 				break;
 			default:
 				stop();
@@ -157,7 +176,7 @@ void tGreenLED (void* Argument) {
 	int state = 0;
 	int led = 0;
 	for(;;) {
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		osStatus_t messageStatus = osMessageQueueGet(greenLedMessageQueue, &messageObject, 0, 0);
 		if (messageStatus == osOK) {
 			state = messageObject.message;
@@ -216,7 +235,7 @@ void tRedLED (void* Argument) {
 	int state = 0;
 	
 	for (;;) {
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		osStatus_t messageStatus = osMessageQueueGet(redLedMessageQueue, &messageObject, 0, 0);
 		if (messageStatus == osOK) {
 			state = messageObject.message;
@@ -239,7 +258,7 @@ void tRedLED (void* Argument) {
 void tAudio (void* Argument) {
 	int song = 0;
 	for (;;) {
-		MessageObjectType messageObject;
+		MessageObject_t messageObject;
 		osStatus_t messageStatus = osMessageQueueGet(audioMessageQueue, &messageObject, 0, 0);
 		if (messageStatus == osOK) {
 			song = messageObject.message;
@@ -304,51 +323,200 @@ void tUltrasonic(void* Argument) {
 		TPM2_CNT = 0;
 		
 		ultrasonicRising = 1;
-		ultrasonicReading = 0;
+		ultrasonicReading = 1000;
 		NVIC_EnableIRQ(TPM2_IRQn);
 		NVIC_ClearPendingIRQ(TPM2_IRQn);
 		TPM2_SC |= TPM_SC_CMOD(1);
 		
-		osDelay(100);
-		MessageObjectType messageObject;
+		osDelay(30);
+		LongMessageObject_t messageObject;
 		messageObject.message = ultrasonicReading;
 		osMessageQueuePut(ultrasonicMessageQueue, &messageObject, 0,0);
 	}
 }
 
+#define REVERSE_TIME 100
+#define LEFT_TURN_TIME 300
+#define RIGHT_TURN_TIME 550
+#define MOVE_TIME 400
+#define STOP_TIME 100
+#define STOP_DISTANCE 600
+
 void tAutoMode(void* Argument) {
 	for(;;) {
 		osSemaphoreAcquire(autoStartSemaphore, osWaitForever);
 		
+		playAudio(2);
 		int isBreak = 0;
 		uint32_t distanceReading = 900;
 		
 		//Go forward
-		MessageObjectType motorMessage;
-		motorMessage.message = (0x01); //only the 4 LSB
+		MessageObject_t motorMessage;
+		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(100);
 		
 		//While not near obstacle
-		while (distanceReading > 100) {
+		while (distanceReading > STOP_DISTANCE) {
 			osStatus_t status = osSemaphoreAcquire(autoStopSemaphore, 1);
-			//if stop auto mode commnand was triggered
+			//if stop auto mode commnand was given
 			if (status != osErrorTimeout) {
-				motorMessage.message = (0x00);
-				osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 				isBreak = 1;
 				break;
 			}
 			//get ultrasonic reading
-			MessageObjectType ultrasonicMessage;
+			LongMessageObject_t ultrasonicMessage;
 			osSemaphoreRelease(ultrasonicSemaphore);
-			osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 125);
+			osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
 			distanceReading = ultrasonicMessage.message;
-		}
-		if (isBreak) {
-			continue;
 		}
 		motorMessage.message = (0x00);
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+		if (isBreak) { //if stop auto mode command was given
+			continue;
+		}
+		
+		
+		//Brake
+		motorMessage.message = (0x05); //reverse (corner 0)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(REVERSE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+		
+		
+		motorMessage.message = (0x08); //spin left (corner 0)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(LEFT_TURN_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		motorMessage.message = (0x01); //forward 
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(MOVE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		
+		motorMessage.message = (0x09); //spin right (corner 1)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(RIGHT_TURN_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		motorMessage.message = (0x01); //forward
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(MOVE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		
+		motorMessage.message = (0x09); //spin right (corner 2)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(RIGHT_TURN_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		motorMessage.message = (0x01); //forward
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(MOVE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		
+		motorMessage.message = (0x09); //spin right (corner 3)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(RIGHT_TURN_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		motorMessage.message = (0x01); //forward
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(MOVE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		
+		motorMessage.message = (0x08); //spin left (corner 0)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(LEFT_TURN_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		motorMessage.message = (0x01); //forward 
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(MOVE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		distanceReading = 900;
+		
+		//Go forward
+		motorMessage.message = (0x01); //forward
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(100);
+
+		//While not near obstacle
+		while (distanceReading > STOP_DISTANCE) {
+			//get ultrasonic reading
+			LongMessageObject_t ultrasonicMessage;
+			osSemaphoreRelease(ultrasonicSemaphore);
+			osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
+			distanceReading = ultrasonicMessage.message;
+		}
+		motorMessage.message = (0x00);
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(100);
+		
+		//Brake
+		motorMessage.message = (0x05); //reverse (corner 0)
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		moveLED();
+		osDelay(REVERSE_TIME);
+		motorMessage.message = (0x00); //stop
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
+		stopLED();
+		osDelay(STOP_TIME);
+
+		playAudio(3);
 	}
 }
 
@@ -366,12 +534,12 @@ int main (void) {
  
   osKernelInitialize();                 // Initialize CMSIS-RTOS
 	
-	brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
-	motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
-	redLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
-	greenLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
-	audioMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObjectType), NULL);
-	ultrasonicMessageQueue = osMessageQueueNew(1, sizeof(MessageObjectType), NULL);
+	brainMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObject_t), NULL);
+	motorMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObject_t), NULL);
+	redLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObject_t), NULL);
+	greenLedMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObject_t), NULL);
+	audioMessageQueue = osMessageQueueNew(QUEUE_SIZE, sizeof(MessageObject_t), NULL);
+	ultrasonicMessageQueue = osMessageQueueNew(1, sizeof(LongMessageObject_t), NULL);
 	ultrasonicSemaphore = osSemaphoreNew(1, 0, NULL);
 	autoStartSemaphore = osSemaphoreNew(1, 0, NULL);
 	autoStopSemaphore = osSemaphoreNew(1, 0, NULL);
