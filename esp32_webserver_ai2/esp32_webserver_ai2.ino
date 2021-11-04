@@ -5,8 +5,8 @@
 #define TXD2 17
 
 // Replace with your network credentials
-const char* ssid = "Jonathan's Phone";
-const char* password = "jeremiah29:11";
+const char* ssid = "Justin";
+const char* password = "aloysius";
 
 // Set web server port number to 80
 WiFiServer server(80);

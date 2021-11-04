@@ -398,11 +398,6 @@
               <FilePath>.\sound.c</FilePath>
             </File>
             <File>
-              <FileName>Ultrasonic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Ultrasonic.c</FilePath>
-            </File>
-            <File>
               <FileName>sound.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\sound.h</FilePath>
@@ -441,6 +436,16 @@
               <FileName>LED.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\LED.c</FilePath>
+            </File>
+            <File>
+              <FileName>ultrasonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\ultrasonic.c</FilePath>
+            </File>
+            <File>
+              <FileName>ultrasonic.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ultrasonic.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -25,20 +25,20 @@ void initGreenLED() {
 }
 
 void initRedLED() {
-	SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
+	SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
 	
-	PORTA->PCR[1] &= ~PORT_PCR_MUX_MASK;
-	PORTA->PCR[1] |= PORT_PCR_MUX(1);
+	PORTA->PCR[7] &= ~PORT_PCR_MUX_MASK;
+	PORTA->PCR[7] |= PORT_PCR_MUX(1);
 	
-	PTA->PDDR |= 0b10;
-	PTA->PCOR |= 0b11;
+	PTC->PDDR |= 1 << 7;
+	PTC->PCOR |= 1 << 7;
 }
 
 void flash(int rate) {
-	PTA->PCOR |= 0b11;
+	PTC->PCOR |= 1 << 7;
 	
-	PTA->PSOR |= 0b10;
+	PTC->PSOR |= 1 << 7;
 	osDelay(rate);
-	PTA->PCOR |= 0b11;
+	PTC->PCOR |= 1 << 7;
 	osDelay(rate);
 }
