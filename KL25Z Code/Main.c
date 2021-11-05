@@ -279,6 +279,7 @@ void tAudio (void* Argument) {
 				offSound();
 				osDelay(500);
 				song = 0;
+				isDone = 0;
 				break;
 			default:
 				osDelay(250);
@@ -287,7 +288,7 @@ void tAudio (void* Argument) {
 }
 
 volatile int ultrasonicRising = 1;
-volatile uint32_t ultrasonicReading = 0;
+volatile uint32_t ultrasonicReading = 1000;
 void TPM2_IRQHandler(void) {
 	NVIC_ClearPendingIRQ(TPM2_IRQn);
 	TPM2_STATUS |= TPM_STATUS_CH1F_MASK;
@@ -299,7 +300,7 @@ void TPM2_IRQHandler(void) {
 		TPM2_C1SC |= TPM_CnSC_ELSB_MASK;
 		
 	} else { //end of echo pin pulse
-		ultrasonicReading = TPM2_C1V * 0.1143;
+		ultrasonicReading = TPM2_C1V * 0.05715;
 		ultrasonicRising = 1;
 		NVIC_DisableIRQ(TPM2_IRQn);
 	}
@@ -335,112 +336,112 @@ void tUltrasonic(void* Argument) {
 	}
 }
 
-#define REVERSE_TIME 100
+#define REVERSE_HALFWAY_TIME 400
+#define REVERSE_FINAL_TIME 100
 #define LEFT_TURN_TIME 300
 #define RIGHT_TURN_TIME 550
-#define MOVE_TIME 400
+#define MOVE_TIME 500
 #define STOP_TIME 100
-#define STOP_DISTANCE 600
+#define STOP_DISTANCE 300
 
 void tAutoMode(void* Argument) {
 	for(;;) {
 		osSemaphoreAcquire(autoStartSemaphore, osWaitForever);
 		
+		isDone = 0;
+		
 		playAudio(2);
-		int isBreak = 0;
-		uint32_t distanceReading = 900;
+		//int isBreak = 0;
+		uint32_t distanceReading0 = 900;
+		uint32_t distanceReading1 = 900;
+		uint32_t maxDistanceReading = 900;
 		
 		//Go forward
 		MessageObject_t motorMessage;
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		moveLED();
-		osDelay(100);
+		osDelay(600);
+		
 		
 		//While not near obstacle
-		while (distanceReading > STOP_DISTANCE) {
+		while (maxDistanceReading > STOP_DISTANCE) {
+			/*
 			osStatus_t status = osSemaphoreAcquire(autoStopSemaphore, 1);
 			//if stop auto mode commnand was given
 			if (status != osErrorTimeout) {
 				isBreak = 1;
 				break;
-			}
+			}*/
 			//get ultrasonic reading
+			osMessageQueueReset(ultrasonicMessageQueue);
 			LongMessageObject_t ultrasonicMessage;
 			osSemaphoreRelease(ultrasonicSemaphore);
-			osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
-			distanceReading = ultrasonicMessage.message;
+			osStatus_t status = osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
+			if (status == osOK) {
+				distanceReading1 = distanceReading0;
+				distanceReading0 = ultrasonicMessage.message;
+				maxDistanceReading = distanceReading0 > distanceReading1 ? distanceReading0 : distanceReading1;
+			}
 		}
 		motorMessage.message = (0x00);
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		stopLED();
 		osDelay(STOP_TIME);
+		/*
 		if (isBreak) { //if stop auto mode command was given
 			continue;
-		}
+		}*/
 		
 		
 		//Brake
 		motorMessage.message = (0x05); //reverse (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
-		osDelay(REVERSE_TIME);
+		osDelay(REVERSE_HALFWAY_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 		
 		
 		motorMessage.message = (0x08); //spin left (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(LEFT_TURN_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		motorMessage.message = (0x01); //forward 
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(MOVE_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		
 		motorMessage.message = (0x09); //spin right (corner 1)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(RIGHT_TURN_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(MOVE_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		
 		motorMessage.message = (0x09); //spin right (corner 2)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(RIGHT_TURN_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(MOVE_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
@@ -450,56 +451,54 @@ void tAutoMode(void* Argument) {
 		
 		motorMessage.message = (0x09); //spin right (corner 3)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(RIGHT_TURN_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(MOVE_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		
 		motorMessage.message = (0x08); //spin left (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(LEFT_TURN_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
 		motorMessage.message = (0x01); //forward 
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(MOVE_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 
-		distanceReading = 900;
+		distanceReading0 = 900;
+		distanceReading1 = 900;
+		maxDistanceReading = 900;
 		
 		//Go forward
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
 		osDelay(100);
 
 		//While not near obstacle
-		while (distanceReading > STOP_DISTANCE) {
+		while (maxDistanceReading > STOP_DISTANCE) {
 			//get ultrasonic reading
+			osMessageQueueReset(ultrasonicMessageQueue);
 			LongMessageObject_t ultrasonicMessage;
 			osSemaphoreRelease(ultrasonicSemaphore);
-			osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
-			distanceReading = ultrasonicMessage.message;
+			osStatus_t status = osMessageQueueGet(ultrasonicMessageQueue, &ultrasonicMessage, 0, 35);
+			if (status == osOK) {
+				distanceReading1 = distanceReading0;
+				distanceReading0 = ultrasonicMessage.message;
+				maxDistanceReading = distanceReading0 > distanceReading1 ? distanceReading0 : distanceReading1;
+			}
 		}
 		motorMessage.message = (0x00);
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
@@ -509,14 +508,14 @@ void tAutoMode(void* Argument) {
 		//Brake
 		motorMessage.message = (0x05); //reverse (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		moveLED();
-		osDelay(REVERSE_TIME);
+		osDelay(REVERSE_FINAL_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		stopLED();
 		osDelay(STOP_TIME);
-
-		playAudio(3);
+		
+		
+		isDone = 1;
 	}
 }
 
