@@ -118,8 +118,9 @@ void tBrain (void* argument) {
 	}
 }
 
-#define TURN_MULTIPLIER 0.5;
-#define SPIN_MULTIPLIER 0.9;
+#define TURN_MULTIPLIER 0.3
+#define SPIN_MULTIPLIER 0.9
+#define RIGHT_MULTIPLIER 0.96
 
 void tMotorControl (void *argument) {
 	//LF: PTD2 C2V
@@ -135,7 +136,7 @@ void tMotorControl (void *argument) {
 				break;
 			case 0x1: //FORWARDSTRAIGHT
 				LF_Pin = speed; // 0xEA6 = 3750, basically half of 7500 for 50% duty cycle
-				RF_Pin = speed;
+				RF_Pin = speed * RIGHT_MULTIPLIER;
 				break;
 			case 0x2: //FORWARDLEFT
 				LF_Pin = speed * TURN_MULTIPLIER;
@@ -338,9 +339,10 @@ void tUltrasonic(void* Argument) {
 
 #define REVERSE_HALFWAY_TIME 400
 #define REVERSE_FINAL_TIME 100
-#define LEFT_TURN_TIME 300
+#define LEFT_TURN_TIME 200
+#define FINAL_LEFT_TURN_TIME 330
 #define RIGHT_TURN_TIME 550
-#define MOVE_TIME 500
+#define MOVE_TIME 700
 #define STOP_TIME 100
 #define STOP_DISTANCE 300
 
@@ -386,8 +388,8 @@ void tAutoMode(void* Argument) {
 		}
 		motorMessage.message = (0x00);
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
+		stopLED();
 		/*
 		if (isBreak) { //if stop auto mode command was given
 			continue;
@@ -398,85 +400,106 @@ void tAutoMode(void* Argument) {
 		motorMessage.message = (0x05); //reverse (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(REVERSE_HALFWAY_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 		
 		
 		motorMessage.message = (0x08); //spin left (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(LEFT_TURN_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		motorMessage.message = (0x01); //forward 
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(MOVE_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		
 		motorMessage.message = (0x09); //spin right (corner 1)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(RIGHT_TURN_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(MOVE_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		
 		motorMessage.message = (0x09); //spin right (corner 2)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(RIGHT_TURN_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(MOVE_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
+		stopLED();
 
 		
 		motorMessage.message = (0x09); //spin right (corner 3)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(RIGHT_TURN_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(MOVE_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		
 		motorMessage.message = (0x08); //spin left (corner 0)
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		osDelay(LEFT_TURN_TIME);
+		osDelay(FINAL_LEFT_TURN_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		motorMessage.message = (0x01); //forward 
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(MOVE_TIME);
+		moveLED();
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(STOP_TIME);
+		stopLED();
 
 		distanceReading0 = 900;
 		distanceReading1 = 900;
@@ -486,6 +509,7 @@ void tAutoMode(void* Argument) {
 		motorMessage.message = (0x01); //forward
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(100);
+		moveLED();
 
 		//While not near obstacle
 		while (maxDistanceReading > STOP_DISTANCE) {
@@ -501,8 +525,8 @@ void tAutoMode(void* Argument) {
 			}
 		}
 		motorMessage.message = (0x00);
-		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		stopLED();
+		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
 		osDelay(100);
 		
 		//Brake
@@ -511,7 +535,6 @@ void tAutoMode(void* Argument) {
 		osDelay(REVERSE_FINAL_TIME);
 		motorMessage.message = (0x00); //stop
 		osMessageQueuePut(motorMessageQueue, &motorMessage, 0, 0);
-		stopLED();
 		osDelay(STOP_TIME);
 		
 		
